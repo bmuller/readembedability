@@ -61,3 +61,7 @@ class ReadabedPage:
         if len(remaining) > 0:
             d.addCallback(self._tryParser, remaining[0], remaining[1:])
         return d
+
+
+def getReadembedable(url):
+    return ReadabedPage(url).fetch()
