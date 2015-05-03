@@ -1,4 +1,7 @@
 language: python
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq libtidy-dev
 python:
   - "2.7"
   - "pypy"
