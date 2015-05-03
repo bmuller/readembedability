@@ -4,11 +4,11 @@ import operator
 import fastimage
 from bs4 import BeautifulSoup
 
-from utils import unique
+from readembedability.utils import unique
 
 from twisted.internet import defer
 
-from readembedability.base import BaseParser
+from readembedability.parsers.base import BaseParser
 
 
 class ImageTypeParser(BaseParser):

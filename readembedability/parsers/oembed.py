@@ -1,6 +1,6 @@
 from debmeo import discover
 
-from readembedability.base import BaseParser
+from readembedability.parsers.base import BaseParser
 
 
 class OEmbedParser(BaseParser):

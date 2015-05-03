@@ -2,7 +2,7 @@ from dateutil.parser import parse as dateutil_parse
 
 from robostrippy.utils import absoluteURL
 
-from readembedability.html import SmartHTMLDocument
+from readembedability.parsers.html import SmartHTMLDocument
 
 
 class ParseResult:

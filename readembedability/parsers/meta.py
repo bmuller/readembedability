@@ -2,7 +2,7 @@ from operator import methodcaller
 
 from datetime import datetime
 
-from readembedability.base import BaseParser
+from readembedability.parsers.base import BaseParser
 from readembedability.utils import URL
 
 

@@ -1,18 +1,13 @@
 from twisted.internet import defer
 
 from readembedability.io import getPage
-from readembedability.base import ParseResult
-from readembedability.assets import ImageTypeParser, ImagesParser, PDFTypeParser, LastDitchMedia
-from readembedability.oembed import OEmbedParser
-from readembedability.sanitizers import ReadableLxmlParser
-from readembedability.sanitizers import GooseParser
-from readembedability.sanitizers import StandardsParser
-from readembedability.sanitizers import SummarizingParser
-from readembedability.sanitizers import LastDitchParser
-from readembedability.sanitizers import FinalContentPass
-from readembedability.custom import CustomParser
-from readembedability.meta import AuthorParser
-from readembedability.meta import DatePublishedParser
+from readembedability.parsers.base import ParseResult
+from readembedability.parsers.assets import ImageTypeParser, ImagesParser, PDFTypeParser, LastDitchMedia
+from readembedability.parsers.oembed import OEmbedParser
+from readembedability.parsers.sanitizers import ReadableLxmlParser, GooseParser, StandardsParser, SummarizingParser
+from readembedability.parsers.sanitizers import LastDitchParser, FinalContentPass
+from readembedability.parsers.custom import CustomParser
+from readembedability.parsers.meta import AuthorParser, DatePublishedParser
 
 
 class ReadabedPage:
@@ -66,7 +61,3 @@ class ReadabedPage:
         if len(remaining) > 0:
             d.addCallback(self._tryParser, remaining[0], remaining[1:])
         return d
-
-
-def getReadembedable(url):
-    return ReadabedPage(url).fetch()

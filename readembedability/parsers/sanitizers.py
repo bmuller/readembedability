@@ -4,12 +4,10 @@ from os import path
 from readability.readability import Document
 import goose
 
-from twisted.internet import defer
-
-from readembedability.html import sanitize_html, SmartHTMLDocument
-from readembedability.text import Summarizer
+from readembedability.parsers.html import sanitize_html, SmartHTMLDocument
+from readembedability.parsers.text import Summarizer
 from readembedability.utils import unique, longest
-from readembedability.base import BaseParser
+from readembedability.parsers.base import BaseParser
 
 
 class StandardsParser(BaseParser):

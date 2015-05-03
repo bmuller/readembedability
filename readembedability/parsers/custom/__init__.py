@@ -2,8 +2,8 @@ import re
 from operator import itemgetter
 
 from readembedability.io import getPage
-from readembedability.base import BaseParser
-from readembedability.html import SmartHTMLDocument
+from readembedability.parsers.base import BaseParser
+from readembedability.parsers.html import SmartHTMLDocument
 
 
 class CustomParser(BaseParser):

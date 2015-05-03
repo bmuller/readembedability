@@ -1,7 +1,7 @@
 from twisted.trial import unittest
 
-from readembedability.meta import AuthorParser
-from readembedability.base import ParseResult
+from readembedability.parsers.meta import AuthorParser
+from readembedability.parsers.base import ParseResult
 from readembedability.tests.utils import FakeResponse
 from readembedability.tests.soupkitchen import T
 
