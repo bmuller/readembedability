@@ -1,0 +1,9 @@
+*.pickle
+*.pid
+_trial_temp
+apidoc
+*.pyc
+build
+dist
+*.egg-info
+docs/_build

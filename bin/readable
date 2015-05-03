@@ -1,0 +1,27 @@
+#!/usr/bin/env python
+import sys, os
+
+from twisted.internet import reactor
+
+sys.path.append("%s/.." % os.path.dirname(__file__))
+
+from readembedability.requests import getReadembedable
+
+
+def p(r):
+    for k, v in r.iteritems():
+        if type(v) is str or type(v) is unicode:
+            v = v.replace("\n", " ")
+        print "%s: %s\n" % (k, v)
+    reactor.stop()
+
+def f(r):
+    print r
+    reactor.stop()
+
+if len(sys.argv) < 2:
+    print "Usage: %s http://a/path" % sys.argv[0]
+    sys.exit(0)
+
+getReadembedable(sys.argv[1]).addCallbacks(p, f)
+reactor.run()
