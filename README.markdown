@@ -31,6 +31,19 @@ getReadembedable(url).addCallback(p)
 reactor.run()
 ```
 
+The result of calling `getReadembedable` will give you a dictionary with the following keys:
+ * primary_image: The full URL to the image that is most likely the primary one for the page.
+ * secondary_images: A list of all other images that appear and seem related to the content.
+ * author: The author name, if it can be pulled out.
+ * url: The original URL passed as a parameter.
+ * canonical_url: The URL for the page that had the content (for instance, after following all redirects) 
+ * title: Page title
+ * summary: Few sentence summary of the content
+ * content: Meaningful/relevant text content from the page.
+ * published_at: Date of publishing.
+ * keywords: Keywords pulled from the content
+ * embed: Whether the content is HTML suitable for embedding (for instance, via oEmbed)
+
 ## Running Tests
 To run tests:
 
