@@ -11,7 +11,7 @@ pip install readembedable
 ## Usage
 *This assumes you have a working familiarity with [Twisted](https://twistedmatrix.com).*
 
-Assuming you want to connect to an existing network (run the standalone server example below if you don't have a network):
+Assume you want to extract all of the meaningful data from an article on the NY Times:
 
 ```python
 from twisted.internet import reactor
@@ -43,6 +43,9 @@ The result of calling `getReadembedable` will give you a dictionary with the fol
  * published_at: Date of publishing.
  * keywords: Keywords pulled from the content
  * embed: Whether the content is HTML suitable for embedding (for instance, via oEmbed)
+
+## How It Works
+Readembedability utilizes a number of libraries that all try to extract meaningful information from poorly structured web pages.  It runs content through all of them, extracting the best guess at, say, the author after each pass.  Some libraries are good at extracting text, others at images, etc.  Readembedability uses each library for the task it seems best able to perform.
 
 ## Running Tests
 To run tests:
