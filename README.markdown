@@ -5,7 +5,7 @@
 Readembedability is an open source version of [Readability](https://readability.com/) or [Diffbot](https://www.diffbot.com/) that also handles creating a unified view of [oEmbed](http://www.oembed.com/) pages (for instance, twitter or youtube pages).
 
 ```
-pip install readembedable
+pip install readembedability
 ```
 
 ## Usage
