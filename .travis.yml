@@ -4,6 +4,5 @@ before_install:
   - sudo apt-get install -qq libtidy-dev
 python:
   - "2.7"
-  - "pypy"
 install: pip install .
 script: trial readembedability
