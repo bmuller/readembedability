@@ -1,4 +1,4 @@
-# Python Distributed Hash Table
+# Readembedability
 [![Build Status](https://secure.travis-ci.org/bmuller/readembedability.png?branch=master)](https://travis-ci.org/bmuller/readembedability)
 
 ## Installation

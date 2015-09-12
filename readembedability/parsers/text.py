@@ -1,10 +1,10 @@
-from pkg_resources import resource_string
+from pkg_resources import resource_string, resource_filename
 
 from nltk.tokenize.regexp import WordPunctTokenizer
-from nltk.tokenize.punkt import PunktSentenceTokenizer
 from collections import Counter
 from collections import deque
 from operator import itemgetter
+import nltk
 import heapq
 import re
 
@@ -14,6 +14,7 @@ from readembedability.utils import most_common
 # These are taken from MySQL - http://dev.mysql.com/tech-resources/articles/full-text-revealed.html
 # NLTK's stopwords were a joke
 STOPWORDS = resource_string('readembedability', 'data/stopwords.txt').strip().split("\n")
+PUNKT = nltk.data.load(resource_filename('readembedability', 'data/english.pickle'))
 
 
 class Summarizer:
@@ -119,7 +120,7 @@ class Summarizer:
 
         # now get a score per sentence, based on location and # of keywords
         freqwords = map(itemgetter(0), self.boosted.most_common(100))
-        self.raw_sentences = PunktSentenceTokenizer().tokenize(self.text)
+        self.raw_sentences = PUNKT.tokenize(self.text)
         for index, sentence in enumerate(self.raw_sentences):
             sentence = sentence.strip()
             words = Summarizer.get_words(sentence).keys()
