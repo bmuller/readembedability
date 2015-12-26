@@ -2,7 +2,7 @@ pyflakes==0.9.2
 pep8==1.6.2
 twisted>=14.0
 cssselect==0.9.1
-readability-lxml==0.3.0.2
+readability-lxml==0.6.1
 robostrippy==0.13
 pyOpenSSL>=0.14
 beautifulsoup4==4.3.2

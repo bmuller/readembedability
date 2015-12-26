@@ -1,4 +1,10 @@
-Copyright (c) 2015 Brian Muller
+The file readembedability/data/english.pickle is from the NLTK data
+package and includes a pre-trained Punkt tokenizer for English.  It
+is distributed under the Apache License, Version 2.0 and is
+Copyright (C) 2001-2015 NLTK Project
+
+All other files are Copyright (c) 2015 Brian Muller and are distributed
+under the following license:
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the

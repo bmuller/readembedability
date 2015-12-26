@@ -21,7 +21,7 @@ class ReadabedPage:
     def __init__(self, url):
         self.url = url
 
-    def empty(self):
+    def empty(self, success):
         empty = ParseResult()
         empty.set('embed', False)
         empty.set('primary_image', None)
@@ -34,13 +34,14 @@ class ReadabedPage:
         empty.set('keywords', [])
         empty.set('url', self.url, True)
         empty.set('canonical_url', None)
+        empty.set('success', success, True)
         return empty
 
     def fetch(self):
-        return getPage(self.url).addCallbacks(self._fetch, lambda _: self.empty().jsonReady())
+        return getPage(self.url).addCallbacks(self._fetch, lambda _: self.empty(False).jsonReady())
 
     def _fetch(self, page):
-        result = self.empty()
+        result = self.empty(True)
         result.set('canonical_url', page.url)
 
         if page.status != 200:
