@@ -11,6 +11,6 @@ setup(
     license="MIT",
     url="http://github.com/bmuller/readembedability",
     packages=find_packages(),
-    package_data={ 'readembedability': ['data/*.*'] },
+    package_data={ 'readembedability': ['data/*.*', 'requirements.txt'] },
     install_requires=[s.strip() for s in open('requirements.txt', 'r').readlines()]
     )
