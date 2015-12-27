@@ -32,7 +32,7 @@ class PDFTypeParser(BaseParser):
     def enrich(self, result):
         if self.response.content_type == "application/pdf":
             content = """
-            <object data='%s' type='application/pdf'><p><p>PDF could not be displayed.
+            <object data='%s' type='application/pdf'><p>PDF could not be displayed.
             Visit <a href='%s'>%s</a> to download directly.</p></object>
             """
             result.set('content', content % (self.url, self.url, self.url), lock=True)
