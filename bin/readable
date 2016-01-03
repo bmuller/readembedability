@@ -2,11 +2,13 @@
 import sys, os
 
 from twisted.internet import reactor
+from twisted.python import log
 
 sys.path.append("%s/.." % os.path.dirname(__file__))
 
 from readembedability.page import getReadembedable
 
+log.startLogging(sys.stdout)
 
 def p(r):
     for k, v in r.iteritems():
@@ -23,5 +25,5 @@ if len(sys.argv) < 2:
     print "Usage: %s http://a/path" % sys.argv[0]
     sys.exit(0)
 
-getReadembedable(sys.argv[1]).addCallbacks(p, f)
+getReadembedable(sys.argv[1], debug=True).addCallbacks(p, f)
 reactor.run()

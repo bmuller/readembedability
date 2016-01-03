@@ -30,6 +30,18 @@ class ParseResult:
             r[k] = self.props[k]
         return r
 
+    def __str__(self):
+        """
+        For debugging.
+        """
+        parts = []
+        for k, v in self.props.iteritems():
+            if type(v) is unicode:
+                v = v.encode('ascii', 'replace')
+            parts += ["%s = %s" % (k, v)]
+        parts += ["locks = " + str(self.locks)]
+        return "\n\n".join(parts)
+
     def __contains__(self, prop):
         return prop in self.props
 

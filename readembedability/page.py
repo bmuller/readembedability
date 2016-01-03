@@ -1,4 +1,7 @@
+from operator import methodcaller
+
 from twisted.internet import defer
+from twisted.python import log
 
 from readembedability.io import getPage
 from readembedability.parsers.base import ParseResult
@@ -18,10 +21,11 @@ class ReadabedPage:
                ReadableLxmlParser, GooseParser, LastDitchParser, LastDitchMedia, FinalContentPass, SummarizingParser,
                AuthorParser, DatePublishedParser]
 
-    def __init__(self, url):
+    def __init__(self, url, debug=False):
         self.url = url
+        self.debug = debug
 
-    def empty(self, success):
+    def empty(self):
         empty = ParseResult()
         empty.set('embed', False)
         empty.set('primary_image', None)
@@ -34,35 +38,44 @@ class ReadabedPage:
         empty.set('keywords', [])
         empty.set('url', self.url, True)
         empty.set('canonical_url', None)
-        empty.set('success', success, True)
         return empty
 
     def fetch(self):
-        return getPage(self.url).addCallbacks(self._fetch, lambda _: self.empty(False).jsonReady())
+        return getPage(self.url).addCallbacks(self._fetch, self.error)
+
+    def error(self, error):
+        log.err("Issue fetching %s" % self.url)
+        log.err(error)
+        empty = self.empty()
+        empty.set('success', False)
+        return empty.jsonReady()
 
     def _fetch(self, page):
-        result = self.empty(True)
+        result = self.empty()
         result.set('canonical_url', page.url)
 
         if page.status != 200:
+            log.err("Download of %s returned HTTP respond of %i" % (self.url, page.status))
+            result.set('success', False)
             return result.jsonReady()
 
+        result.set('success', True)
         parsers = [ K(page) for K in self.parsers ]
         d = self._tryParser(result, parsers[0], parsers[1:])
-        return d.addCallback(self.logResult)
+        return d.addCallback(methodcaller('jsonReady'))
 
-    def logResult(self, result):
-        """
-        Optionally - log result here.
-        """
-        return result.jsonReady()
+    def debugResult(self, result, parser):
+        log.msg("Result of %s:\n%s" % (parser.__class__.__name__, result))
+        return defer.succeed(result)
 
     def _tryParser(self, result, parser, remaining):
         d = defer.maybeDeferred(parser.enrich, result)
+        if self.debug:
+            d = d.addCallback(self.debugResult, parser)
         if len(remaining) > 0:
             d.addCallback(self._tryParser, remaining[0], remaining[1:])
         return d
 
 
-def getReadembedable(url):
-    return ReadabedPage(url).fetch()
+def getReadembedable(url, debug=False):
+    return ReadabedPage(url, debug).fetch()

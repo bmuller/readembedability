@@ -37,18 +37,12 @@ class StandardsParser(BaseParser):
 
 
 class ReadableLxmlParser(BaseParser):
-    def couldBeCode(self, content):
-        if content.count('=') > 5:
-            return True
-        return False
-
     def enrich(self, result):
         try:
             doc = Document(self.content, url=self.url)
             content = doc.summary(html_partial=True)
             sanitized = sanitize_html(content)
-            if not self.couldBeCode(sanitized):
-                result.setIfLonger('content', sanitized)
+            result.setIfLonger('content', sanitized)
             result.setIfLonger('title', doc.short_title())
         except:
             pass
@@ -71,8 +65,13 @@ class GooseParserStopwords(goose.text.StopWords):
 class GooseParser(BaseParser):
     def enrich(self, result):
         g = goose.Goose({'enable_image_fetching': False, 'stopwords_class': GooseParserStopwords})
+        content = self.content
+        # remove <?xml ... ?> if it's there so lxml doesn't freak out
+        if content.lstrip(' ').startswith('<?xml'):
+            index = content.find('?>') + 1
+            content = content[index:]
         try:
-            article = g.extract(url=self.url, raw_html=self.content)
+            article = g.extract(url=self.url, raw_html=content)
             result.setIfLonger('title', article.title)
             if len(article.cleaned_text) > 5:
                 paragraphs = filter(lambda x: len(x.strip()) > 0 and 'photo b' not in x.lower(), article.cleaned_text.split("\n"))

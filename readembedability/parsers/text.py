@@ -17,6 +17,10 @@ STOPWORDS = resource_string('readembedability', 'data/stopwords.txt').strip().sp
 PUNKT = nltk.data.load(resource_filename('readembedability', 'data/english.pickle'))
 
 
+def hasdigit(s):
+    return any([y.isdigit() for y in s])
+
+
 class Summarizer:
     def __init__(self, text, title):
         # clean up text a bit - if there are two blank lines consider it a sentence break
@@ -77,7 +81,7 @@ class Summarizer:
         results = []
         atomresults = []
         for word in map(itemgetter(0), self.boosted.most_common()):
-            if word not in atomresults and word.isalnum():
+            if word not in atomresults and word.isalnum() and not hasdigit(word):
                 original = self.getCapitalization(word)
                 if word != original:
                     original = self.getEntity(word, original)

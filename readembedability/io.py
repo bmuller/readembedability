@@ -54,7 +54,7 @@ class HTTPResponse(object):
             return self
         try:
             codecs.lookup(encoding)
-            self.body = unicode(self.body, encoding)
+            self.body = unicode(self.body, encoding, errors='replace')
         except LookupError:
             self.body = unicode(self.body, 'utf-8', errors='replace')
         return self
