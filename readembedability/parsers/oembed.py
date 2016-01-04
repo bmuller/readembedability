@@ -16,10 +16,13 @@ class OEmbedParser(BaseParser):
             result.set('author', oembed['author_name'], True)
 
         if 'html' in oembed:
-            result.set('embed', True)
-            # only lock if the html field actually contains html
-            lock = ">" in oembed['html'] and "<" in oembed['html']
-            result.set('content', oembed['html'], lock=lock)
+            # if this is a wordpress embed, then let's not call it
+            # embedded and use the actual content
+            if "Embedded WordPress Post" not in oembed['html']:
+                result.set('embed', True)
+                # only lock if the html field actually contains html
+                lock = ">" in oembed['html'] and "<" in oembed['html']
+                result.set('content', oembed['html'], lock=lock)
             result.set('title', oembed.get('title', result.get('title')))
             if oembed.get('thumbnail_url', None) is not None:
                 result.set('primary_image', oembed.get('thumbnail_url'))
