@@ -27,7 +27,7 @@ class AuthorParser(BaseParser):
                 return True
         return False
 
-    def enrich(self, result):
+    async def enrich(self, result):
         if self.bs is None:
             result.set('author', None)
             return result
@@ -36,12 +36,12 @@ class AuthorParser(BaseParser):
         author = author or self.bs.getElementValue(None, None, itemprop='author')
         author = author or self.bs.getElementValue('a', None, rel='author')
         if author is not None:
-            result.set('author', self.fixName(author), lock=True)
+            result.set('authors', [self.fixName(author)], 3)
             return result
 
         for astring in self.bs.textChunks():
             txt = astring.strip()
-            parts = filter(lambda s: s != "", txt.split(' '))
+            parts = [s for s in txt.split(' ') if s != ""]
             allowedlen = 4 + (txt.lower().count(' and ') * 4) + (txt.count(',') * 4)
             if len(parts) > 1 and len(parts) <= allowedlen and self.isBylinePrefix(parts[0]):
                 name = " ".join(parts[1:])
@@ -53,7 +53,7 @@ class AuthorParser(BaseParser):
 
 
 class DatePublishedParser(BaseParser):
-    def enrich(self, result):
+    async def enrich(self, result):
         if self.bs is None:
             result.set('published_at', None)
             return result

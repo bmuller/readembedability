@@ -1,19 +1,20 @@
-from debmeo import discover
+from debmeo.discover import get_embed_from_content
 
 from readembedability.parsers.base import BaseParser
 
 
 class OEmbedParser(BaseParser):
-    def enrich(self, result):
-        d = discover.Fetcher(self.url).extract_link(self.response)
-        return d.addCallback(self.handleParse, result)
+    async def enrich(self, result):
+        # don't oembed articles
+        if self.bs.type_guess() == 'article':
+            return result
 
-    def handleParse(self, oembed, result):
+        oembed = await get_embed_from_content(self.response.body)
         if oembed is None:
             return result
 
         if 'author_name' in oembed:
-            result.set('author', oembed['author_name'], True)
+            result.set('author', oembed['author_name'], 3)
 
         if 'html' in oembed:
             # if this is a wordpress embed, then let's not call it
@@ -22,15 +23,16 @@ class OEmbedParser(BaseParser):
                 result.set('embed', True)
                 # only lock if the html field actually contains html
                 lock = ">" in oembed['html'] and "<" in oembed['html']
-                result.set('content', oembed['html'], lock=lock)
+                conf = 3 if lock else 2
+                result.set('content', oembed['html'], conf)
             result.set('title', oembed.get('title', result.get('title')))
             if oembed.get('thumbnail_url', None) is not None:
                 result.set('primary_image', oembed.get('thumbnail_url'))
 
         elif 'url' in oembed and oembed['type'] == 'photo':
             result.set('embed', True)
-            result.set('content', "<img src='%s' />" % oembed['url'], lock=True)
+            result.set('content', "<img src='%s' />" % oembed['url'], 3)
             result.set('title', oembed.get('title', result.get('title')))
-            result.set('primary_image', oembed['url'], lock=True)
+            result.set('primary_image', oembed['url'], 3)
 
         return result

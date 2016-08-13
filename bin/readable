@@ -1,29 +1,38 @@
 #!/usr/bin/env python
-import sys, os
+import asyncio
+import sys
+import logging
 
-from twisted.internet import reactor
-from twisted.python import log
+log = logging.getLogger("readembedability")
+log.setLevel(logging.DEBUG)
+#logging.basicConfig(level=logging.DEBUG)
 
+
+############################################################
+import os
 sys.path.append("%s/.." % os.path.dirname(__file__))
-
+############################################################
 from readembedability.page import getReadembedable
 
-log.startLogging(sys.stdout)
-
-def p(r):
-    for k, v in r.iteritems():
-        if type(v) is str or type(v) is unicode:
-            v = v.replace("\n", " ")
-        print "%s: %s\n" % (k, v)
-    reactor.stop()
-
-def f(r):
-    print r
-    reactor.stop()
-
 if len(sys.argv) < 2:
-    print "Usage: %s http://a/path" % sys.argv[0]
+    print("Usage: %s <image url>" % sys.argv[0])
     sys.exit(0)
 
-getReadembedable(sys.argv[1], debug=True).addCallbacks(p, f)
-reactor.run()
+async def fetch(url):
+    result = await getReadembedable(url)
+    for prop, entries in result.log.items():
+        print("---------------------------------")
+        print("Property:", prop)
+        for entry in entries:
+            parser, value, conf = entry
+            print("%s (%i) %s" % (parser, conf, str(value).replace("\n", " ")))
+        print("\n\n")
+    
+    print("\n\nFinal result:")
+    for k, v in result.to_dict().items():
+        if type(v) is str:
+            v = v.replace("\n", " ")
+        print("%s: %s\n" % (k, v))
+
+loop = asyncio.get_event_loop()
+loop.run_until_complete(fetch(sys.argv[1]))

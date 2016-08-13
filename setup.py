@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 from setuptools import setup, find_packages
-from readembedability import version
+import readembedability
 
 setup(
     name="readembedability",
-    version=version,
+    version=readembedability.__version__,
     description="Extract structured data from unstructured web pages.",
     author="Brian Muller",
     author_email="bamuller@gmail.com",
@@ -12,5 +12,16 @@ setup(
     url="http://github.com/bmuller/readembedability",
     packages=find_packages(),
     package_data={ 'readembedability': ['data/*.*'] },
-    install_requires=['pyflakes==0.9.2', 'pep8==1.6.2', 'twisted>=14.0', 'cssselect==0.9.1', 'readability-lxml==0.6.1', 'robostrippy==0.13', 'pyOpenSSL>=0.14', 'beautifulsoup4==4.3.2', 'debmeo==1.4', 'nltk==3.0.2', 'fastimage==0.2.1', 'goose-extractor==1.0.17', 'python-dateutil==2.4.2', 'treq>=15.0', 'pytidylib==0.2.4']
+    install_requires=['cssselect==0.9.2',
+                      'readability-lxml==0.6.2',
+                      'robostrippy==1.0',
+                      'pyOpenSSL>=16.0.0',
+                      'beautifulsoup4==4.5.1',
+                      'nltk==3.2.1',
+                      'fastimage==1.0.0',
+                      'pytidylib==0.2.4'
+                      'debmeo==2.1.1',
+                      'newspaper3k==0.1.7',
+                      'python-dateutil==2.5.3',
+                      'aiohttp==0.22.5']
     )

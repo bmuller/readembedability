@@ -15,7 +15,7 @@ def sanitize_html(html):
 
 class Sanitizer:
     def __init__(self, html):
-        self.bs = BeautifulSoup(html)
+        self.bs = BeautifulSoup(html, 'lxml')
 
     @property
     def body(self):
@@ -50,16 +50,22 @@ class Sanitizer:
                 elem.extract()
 
         html = "".join([str(c) for c in self.bs.html.body.children])
-        html = html.decode('utf-8')
         doc, errors = tidy_fragment(html, options={'indent': 0})
         return doc
 
 
 class SmartHTMLDocument:
     def __init__(self, html):
-        self.bs = BeautifulSoup(html)
+        self.bs = BeautifulSoup(html, 'lxml')
         # cache chunks
         self.chunks = None
+
+    def type_guess(self):
+        type = None
+        ogtype = self.find_all("meta", property="og:type", content=True)
+        if len(ogtype) > 0:
+            type = ogtype[0]['content']            
+        return type
 
     @property
     def body(self):
@@ -102,7 +108,7 @@ class SmartHTMLDocument:
         """
         if self.bs.html is None:
             return []
-        return [c for c in self.bs.html.descendants if self.isTextNode(c) and len(unicode(c).strip()) > 0]
+        return [c for c in self.bs.html.descendants if self.isTextNode(c) and len(c.strip()) > 0]
 
 
     def isTextNode(self, node):

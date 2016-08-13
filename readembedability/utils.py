@@ -1,11 +1,8 @@
-from urlparse import urlparse, parse_qs, urlunparse
-from urllib import urlencode
+from urllib.parse import urlparse, parse_qs, urlunparse, urlencode
 import re
 import operator
 import datetime
 from collections import Counter
-
-from twisted.internet import defer
 
 URL_DATE_MDY = re.compile("/\d\d?/\d\d?/\d\d\d\d/")
 URL_DATE_YMD = re.compile("/\d\d\d\d/\d\d?/\d\d?/")
@@ -13,8 +10,8 @@ URL_DATE_YMD = re.compile("/\d\d\d\d/\d\d?/\d\d?/")
 
 class URL:
     def __init__(self, url):
-        if isinstance(url, unicode):
-            url = url.encode('ascii', errors='ignore')
+        if not url.startswith('http'):
+            url = 'http://' + url
         self._parts = list(urlparse(url))
         self._query = parse_qs(self._parts[4])
 
@@ -29,6 +26,11 @@ class URL:
 
     def setParam(self, name, value):
         self._query[name] = [value]
+        return self
+
+    def setParams(self, **kwargs):
+        for k, v in kwargs.iteritems():
+            self.setParam(k, v)
         return self
 
     def getDate(self):
@@ -51,7 +53,7 @@ class URL:
 
     def __str__(self):
         nquery = {}
-        for key, values in self._query.iteritems():
+        for key, values in self._query.items():
             nquery[key] = values[0]
         self._parts[4] = urlencode(nquery)
         return urlunparse(self._parts)
@@ -72,39 +74,13 @@ def unique(iterable):
 
 
 def longest(iterable):
-    if len(iterable) == 0:
-        return None
-
-    longest = iterable[0]
-    for item in iterable[1:]:
-        if len(item) > len(longest):
+    longest = None
+    for item in iterable:
+        if longest is None or len(item) > len(longest):
             longest = item
     return longest
 
 
 def most_common(iterable, count=1):
     common = Counter(iterable).most_common(count)
-    return map(operator.itemgetter(0), common)
-
-
-def deferredDict(d):
-    """
-    Just like a C{defer.DeferredList} but instead accepts and returns a C{dict}.
-
-    @param d: A C{dict} whose values are all C{Deferred} objects.
-
-    @return: A C{DeferredList} whose callback will be given a dictionary whose
-    keys are the same as the parameter C{d}'s and whose values are the results
-    of each individual deferred call.
-    """
-    if len(d) == 0:
-        return defer.succeed({})
-
-    def handle(results, names):
-        rvalue = {}
-        for index in range(len(results)):
-            rvalue[names[index]] = results[index][1]
-        return rvalue
-
-    dl = defer.DeferredList(d.values())
-    return dl.addCallback(handle, d.keys())
+    return [i[0] for i in common]

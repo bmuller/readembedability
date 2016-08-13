@@ -13,7 +13,7 @@ from readembedability.utils import most_common
 
 # These are taken from MySQL - http://dev.mysql.com/tech-resources/articles/full-text-revealed.html
 # NLTK's stopwords were a joke
-STOPWORDS = resource_string('readembedability', 'data/stopwords.txt').strip().split("\n")
+STOPWORDS = str(resource_string('readembedability', 'data/stopwords.txt'), 'utf-8').strip().split("\n")
 PUNKT = nltk.data.load(resource_filename('readembedability', 'data/english.pickle'))
 
 
@@ -97,7 +97,7 @@ class Summarizer:
         to sufficient_word_count.
         """
         top = heapq.nlargest(max_sentence_count, self.sentences)
-        ss = map(itemgetter(1), sorted(top, key=itemgetter(2)))
+        ss = [s[1] for s in sorted(top, key=itemgetter(2))]
         if len(ss) == 0:
             return ""
         result = ss[0]
@@ -117,7 +117,7 @@ class Summarizer:
 
         # now boost words based on words in title
         titular_boost = self.words.most_common(1)[0][1] / 2.0
-        for word, value in self.words.iteritems():
+        for word, value in self.words.items():
             self.boosted[word] = value
             if word in self.title_words:
                 self.boosted[word] += titular_boost
@@ -137,13 +137,28 @@ class Summarizer:
                 score -= index
                 heapq.heappush(self.sentences, (score, sentence, index))
 
-
     @classmethod
     def get_words(klass, text):
         tokenizer = WordPunctTokenizer()
         words = Counter()
+        if text is None:
+            return words
         for word in tokenizer.tokenize(text):
             word = word.lower()
             if len(word) > 2 and word not in STOPWORDS:
                 words[word] += 1
         return words
+
+    @classmethod
+    def has_sentenace(klass, text):
+        text = text.strip()
+
+        # more than one word
+        if len(klass.get_words(text)) > 1:
+            return True
+
+        # or one word that ends in a period
+        if len(text) > 0 and text[-1] in '?!:;.':
+            return True
+
+        return False
