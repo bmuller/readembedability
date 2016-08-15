@@ -1,0 +1,31 @@
+#!/usr/bin/env python
+import asyncio
+import sys
+import logging
+import os
+import json
+from urllib.parse import parse_qs
+
+sys.path.append("%s/.." % os.path.dirname(__file__))
+from readembedability.page import get_readembedable
+from aiohttp import web
+
+log = logging.getLogger("readembedability")
+log.setLevel(logging.DEBUG)
+
+async def make_readable(request):
+    args = parse_qs(request.query_string)
+    if 'url' in args:
+        response = await get_readembedable(args['url'][0])
+    else:
+        response = {'success': False, 'msg': "Please give a url param"}
+
+    if 'callback' in args:
+        content_type = "application/x-javascript"
+        text = "%s(%s)" % (args['callback'][0], json.dumps(response))
+        return web.Response(text=text, content_type=content_type)
+    return web.json_response(response)
+
+app = web.Application()
+app.router.add_route('GET', '/', make_readable)
+web.run_app(app)
