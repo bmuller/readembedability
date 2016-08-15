@@ -47,6 +47,8 @@ class AuthorParser(BaseParser):
 
         for txt in self.soup.text_chunks():
             parts = [s for s in txt.split(' ') if s != ""]
+            if len(parts) == 0:
+                return result
             # overlen is the max length + 1 for an author string
             overlen = 8 + (txt.lower().count(' and ') * 8)
             overlen += (txt.count(',') * 8)
@@ -113,7 +115,7 @@ class StandardsParser(BaseParser):
             result.set('_text', SmartHTMLDocument(content).all_text(), 3)
 
         keywords = result.get('keywords')
-        for genre in self.soup.find_all(itemprop="genre"):
+        for genre in self.soup.find_all(itemprop="genre", content=True):
             keywords.append(genre['content'].strip())
         result.set('keywords', unique(keywords))
 

@@ -30,7 +30,7 @@ PARSERS = [
 ]
 
 
-async def get_readembedable(url):
+async def get_readembedable_result(url):
     if not isinstance(url, URL):
         url = URL(url)
 
@@ -55,3 +55,8 @@ async def get_readembedable(url):
         result.set_parser_name(parser_class.__name__)
         result = await parser.enrich(result)
     return result
+
+
+async def get_readembedable(url):
+    result = await get_readembedable_result(url)
+    return result.to_dict()

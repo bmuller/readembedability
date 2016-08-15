@@ -5,7 +5,7 @@ import logging
 import os
 
 sys.path.append("%s/.." % os.path.dirname(__file__))
-from readembedability.page import get_readembedable
+from readembedability.page import get_readembedable_result
 
 log = logging.getLogger("readembedability")
 log.setLevel(logging.DEBUG)
@@ -15,7 +15,7 @@ if len(sys.argv) < 2:
     sys.exit(0)
 
 async def fetch(url):
-    result = await get_readembedable(url)
+    result = await get_readembedable_result(url)
     for prop, entries in result.log.items():
         print("---------------------------------")
         print("Property:", prop)

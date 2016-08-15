@@ -9,32 +9,22 @@ pip install readembedability
 ```
 
 ## Usage
-*This assumes you have a working familiarity with [Twisted](https://twistedmatrix.com).*
-
 Assume you want to extract all of the meaningful data from an article on the NY Times:
 
 ```python
-from twisted.internet import reactor
-from twisted.python import log
-from readembedability.page import getReadembedable
-import sys
+from readembedability.page import get_readembedable
+import asyncio
 
-# log to std out
-log.startLogging(sys.stdout)
-
-def p(r):
-    print r
-    reactor.stop()
-
+loop = asyncio.get_event_loop()
 url = "www.nytimes.com/politics/first-draft/2015/03/13/judge-orders-state-dept-to-release-records-from-clinton-trips/"
-getReadembedable(url).addCallback(p)
-reactor.run()
+result = loop.run_until_complete(get_readembedable(url))
+print(result)
 ```
 
-The result of calling `getReadembedable` will give you a dictionary with the following keys:
+The result of calling `get_readembedable` will give you a dictionary with the following keys:
  * primary_image: The full URL to the image that is most likely the primary one for the page.
  * secondary_images: A list of all other images that appear and seem related to the content.
- * author: The author name, if it can be pulled out.
+ * authors: The author names, if it can be pulled out.
  * url: The original URL passed as a parameter.
  * canonical_url: The URL for the page that had the content (for instance, after following all redirects) 
  * title: Page title
@@ -51,5 +41,5 @@ Readembedability utilizes a number of libraries that all try to extract meaningf
 To run tests:
 
 ```
-trial readembedable
+python -m unittest
 ```
