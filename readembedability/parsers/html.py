@@ -121,6 +121,11 @@ class SmartElem:
 
     def all_text(self):
         text = ""
+        if self.is_text():
+            return str(self)
+        elif not self.is_tag():
+            # this would be a Comment, etc
+            return text
         for child in self.elem.descendants:
             celem = SmartElem(child)
             if celem.is_text():

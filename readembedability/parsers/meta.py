@@ -56,8 +56,9 @@ class AuthorParser(BaseParser):
                 if author is None or len(name) < author:
                     author = name
 
-        authors = map(self.fix_name, author.split(' and '))
-        result.set('author', list(authors))
+        if author:
+            authors = map(self.fix_name, author.split(' and '))
+            result.set('authors', list(authors))
         return result
 
 

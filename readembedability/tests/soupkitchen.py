@@ -1,4 +1,4 @@
-import cgi
+import html
 
 
 class Tag(object):
@@ -8,11 +8,18 @@ class Tag(object):
         self.attrs = {}
 
     def __call__(self, *kids, **attrs):
-        self.kids = list(kids)
+        kids = list(kids)
         self.attrs = attrs
-        if len(self.kids) > 0 and type(self.kids[-1]) is dict:
-            self.attrs.update(self.kids.pop())
-        self.kids = map(lambda s: s if type(s) is Tag else cgi.escape(str(s)), self.kids)
+        if len(kids) > 0 and isinstance(kids[-1], dict):
+            self.attrs.update(kids.pop())
+
+        for kid in kids:
+            if isinstance(kid, Tag):
+                self.kids.append(kid)
+            else:
+                cleaned = html.escape(str(kid))
+                self.kids.append(cleaned)
+
         return self
 
     def __str__(self):
@@ -20,7 +27,9 @@ class Tag(object):
         sattrs = " " + sattrs if len(self.attrs) > 0 else ""
         if len(self.kids) == 0:
             return "<%s%s/>" % (self.name, sattrs)
-        return "<%s%s>" % (self.name, sattrs) + "".join(map(str, self.kids)) + "</%s>" % self.name
+        result = "<%s%s>" % (self.name, sattrs)
+        result += "".join(map(str, self.kids))
+        return result + "</%s>" % self.name
 
     __repr__ = __str__
 

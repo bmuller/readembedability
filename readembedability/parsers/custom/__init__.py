@@ -51,6 +51,5 @@ class FortuneParser(CustomParser):
         return result
 
 
-
 # pylint: disable=anomalous-backslash-in-string
 CustomParser.register("https?://fortune\.com/", FortuneParser)
