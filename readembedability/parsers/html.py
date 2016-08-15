@@ -1,86 +1,159 @@
 from bs4 import BeautifulSoup
-from bs4.element import NavigableString, Tag, Comment
+from bs4.element import NavigableString, Tag, Comment, ProcessingInstruction
+from bs4.element import Declaration, CData, Doctype
 
 from tidylib import tidy_fragment
 
-CLEAN_ELEMS = ("article object iframe img ul li ol p span div h1 h2 h3 h4 h5 h6 a i b code " +
-               "pre em blockquote table thead tbody td tr dt dl caption col colgroup tfoo video").split()
+CLEAN_ELEMS = [
+    "article",
+    "object",
+    "iframe",
+    "img",
+    "ul",
+    "li",
+    "ol",
+    "p",
+    "span",
+    "div",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "a",
+    "i",
+    "b",
+    "code",
+    "pre",
+    "em",
+    "blockquote",
+    "table",
+    "thead",
+    "tbody",
+    "td",
+    "tr",
+    "dt",
+    "dl",
+    "caption",
+    "col",
+    "colgroup",
+    "tfoo",
+    "video"
+]
 
-CLEAN_ELEM_ATTRS = { 'a': ['href'], 'img': ['src'], 'iframe': ['*'], 'video': ['*'] }
+CLEAN_ELEM_ATTRS = {
+    'a': ['href'],
+    'img': ['src'],
+    'iframe': ['*'],
+    'video': ['*']
+}
 
 
 def sanitize_html(html):
-    return Sanitizer(html).clean()
+    soup = BeautifulSoup(html, 'lxml')
+    if soup.html.body is None:
+        return ""
+
+    for elem in list(soup.html.body.descendants):
+        smart = SmartElem(elem)
+        if not smart.is_virtuous():
+            smart.delete()
+        else:
+            smart.clean()
+
+    html = "".join([str(c) for c in soup.html.body.children])
+    doc, _ = tidy_fragment(html, options={'indent': 0})
+    return doc
 
 
-class Sanitizer:
-    def __init__(self, html):
-        self.bs = BeautifulSoup(html, 'lxml')
+class SmartElem:
+    def __init__(self, elem):
+        self.elem = elem
 
-    @property
-    def body(self):
-        return self.bs.html.body
+    def is_text(self):
+        if not isinstance(self.elem, NavigableString):
+            return False
 
-    def _cleanAttrs(self, elem):
-        attrs = {}
-        for name, value in elem.attrs.items():
-            if name in CLEAN_ELEM_ATTRS.get(elem.name, []):
-                attrs[name] = value
-        elem.attrs = attrs
+        for badtype in [Comment, ProcessingInstruction, Declaration,
+                        CData, Doctype]:
+            if isinstance(self.elem, badtype):
+                return False
 
-    def _isBad(self, elem):
-        if elem.name == 'a' and 'sign up' in elem.get_text().lower():
+        badparents = ['script', 'style']
+        return self.elem.parent and self.elem.parent.name not in badparents
+
+    def is_tag(self):
+        return isinstance(self.elem, Tag)
+
+    def delete(self):
+        self.elem.extract()
+
+    def _is_virtuous_tag(self):
+        if self.elem.name not in CLEAN_ELEMS:
+            return False
+        if self.elem.name == 'a' and 'sign up' in self.elem.get_text().lower():
+            return False
+        return True
+
+    def _is_virtuous_text(self):
+        text = str(self.elem).lower()
+        return not text.startswith('photo by') and len(text) > 0
+
+    def is_virtuous(self):
+        """
+        Is this node useful?  Does it likely contain good information?
+        """
+        if self.is_tag() and self._is_virtuous_tag():
+            return True
+        elif self.is_text() and self._is_virtuous_text():
             return True
         return False
 
-    def _tag(self, elem):
-        if elem.name not in CLEAN_ELEMS or self._isBad(elem):
-            elem.extract()
-        else:
-            self._cleanAttrs(elem)
-
     def clean(self):
-        if self.bs.html.body is None:
-            return ""
-        for elem in list(self.bs.html.body.descendants):
-            # only allow tags and strings
-            if type(elem) is Tag:
-                self._tag(elem)
-            elif type(elem) is Comment or type(elem) is not NavigableString or 'photo by' in elem.string.lower():
-                elem.extract()
+        if self.is_tag():
+            attrs = {}
+            for name, value in self.elem.attrs.items():
+                if name in CLEAN_ELEM_ATTRS.get(self.elem.name, []):
+                    attrs[name] = value
+            self.elem.attrs = attrs
+        return self.elem
 
-        html = "".join([str(c) for c in self.bs.html.body.children])
-        doc, errors = tidy_fragment(html, options={'indent': 0})
-        return doc
+    def all_text(self):
+        text = ""
+        for child in self.elem.descendants:
+            celem = SmartElem(child)
+            if celem.is_text():
+                text += " " + str(celem)
+        return text.strip()
+
+    def __str__(self):
+        return str(self.elem)
 
 
 class SmartHTMLDocument:
     def __init__(self, html):
-        self.bs = BeautifulSoup(html, 'lxml')
-        # cache chunks
-        self.chunks = None
+        self.soup = BeautifulSoup(html, 'lxml')
 
     def type_guess(self):
-        type = None
+        guess = None
         ogtype = self.find_all("meta", property="og:type", content=True)
         if len(ogtype) > 0:
-            type = ogtype[0]['content']            
-        return type
+            guess = ogtype[0]['content']
+        return guess
 
     @property
     def body(self):
-        return self.bs.html.body
+        return self.soup.html.body
 
     def find_all(self, *args, **kwargs):
-        return self.bs.find_all(*args, attrs=kwargs)
-
+        return self.soup.find_all(*args, attrs=kwargs)
 
     def delete(self, *args, **kwargs):
-        for elem in self.bs.find_all(*args, attrs=kwargs):
+        for elem in self.soup.find_all(*args, attrs=kwargs):
             elem.extract()
 
-
-    def getElementValue(self, _name, attr=None, **attrs):
+    def get_elem_value(self, _name, attr=None, **attrs):
         for elem in self.find_all(_name, **attrs):
             if attr is None:
                 txt = elem.get_text().strip()
@@ -90,46 +163,55 @@ class SmartHTMLDocument:
                 return elem[attr].strip()
         return None
 
-
-    def getText(self, node=None):
-        text = ""
-        node = node or self.bs.html
-        if type(node) is not Tag:
-            return text
-        for child in node.descendants:
-            if self.isTextNode(child):
-                text += " " + child.string
-        return text
-
-
-    def getTextNodes(self):
+    def coalesce_elem_value(self, attempts):
         """
-        Return all non-empty, non-js, non-css, non-comment text nodes
+        Given lots of get_elem_value calls you'd like to make but
+        you only care about the first non-null result, just call this
+        function with tuples of your args to get_elem_value.
         """
-        if self.bs.html is None:
-            return []
-        return [c for c in self.bs.html.descendants if self.isTextNode(c) and len(c.strip()) > 0]
+        for attempt in map(list, attempts):
+            kwargs = {}
+            if len(attempt) == 3:
+                kwargs = attempt.pop()
+            if len(attempt) == 2:
+                kwargs['attr'] = attempt.pop()
+            result = self.get_elem_value(attempt[0], **kwargs)
+            if result is not None:
+                return result
+        return None
 
+    def all_text(self):
+        return SmartElem(self.soup.html).all_text()
 
-    def isTextNode(self, node):
-        istnode = type(node) is NavigableString
-        istnode = istnode and (node.parent is None or node.parent.name not in [ 'script', 'style' ])
-        return istnode and type(node) is not Comment
+    def get_text_nodes(self):
+        """
+        Return all non-empty, non-js, non-css, non-comment
+        text nodes
+        """
+        result = []
+        if self.soup.html is None:
+            return result
 
+        for kid in self.soup.html.descendants:
+            elem = SmartElem(kid)
+            if elem.is_text() and elem.is_virtuous():
+                result.append(kid)
+        return result
 
-    def textChunks(self):
-        if self.chunks is not None:
-            return self.chunks
-
-        self.chunks = []
-        for child in self.bs.html.descendants:
-            txt = self.getText(child).strip()
+    def text_chunks(self):
+        """
+        Return recursive chunks of text.  For instance:
+        <p>one <b>two</b></p> will return:
+        ['one two', 'two']
+        """
+        chunks = []
+        for child in self.soup.html.descendants:
+            txt = SmartElem(child).all_text()
             if txt != "":
-                self.chunks.append(txt)
-        return self.chunks
-
+                chunks.append(txt)
+        return chunks
 
     def __str__(self):
-        if self.bs.html is None or self.bs.html.body is None:
+        if self.soup.html is None or self.soup.html.body is None:
             return ""
-        return "".join([str(c) for c in self.bs.html.body.children])
+        return "".join([str(c) for c in self.soup.html.body.children])

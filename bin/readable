@@ -2,24 +2,20 @@
 import asyncio
 import sys
 import logging
+import os
+
+sys.path.append("%s/.." % os.path.dirname(__file__))
+from readembedability.page import get_readembedable
 
 log = logging.getLogger("readembedability")
 log.setLevel(logging.DEBUG)
-#logging.basicConfig(level=logging.DEBUG)
-
-
-############################################################
-import os
-sys.path.append("%s/.." % os.path.dirname(__file__))
-############################################################
-from readembedability.page import getReadembedable
 
 if len(sys.argv) < 2:
     print("Usage: %s <image url>" % sys.argv[0])
     sys.exit(0)
 
 async def fetch(url):
-    result = await getReadembedable(url)
+    result = await get_readembedable(url)
     for prop, entries in result.log.items():
         print("---------------------------------")
         print("Property:", prop)

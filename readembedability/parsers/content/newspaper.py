@@ -1,8 +1,9 @@
+import re
+
 import lxml.html
 from newspaper import Article
 from newspaper.configuration import ArticleConfiguration
 from newspaper.parsers import Parser
-
 
 from readembedability.parsers.base import BaseParser
 from readembedability.parsers.text import Summarizer
@@ -34,7 +35,8 @@ class NewspaperParser(BaseParser):
         if len(article.meta_description) > 0:
             result.set_if_longer('subtitle', article.meta_description, 2)
         if len(article.article_html) > 0:
-            result.set_if_longer('content', sanitize_html(article.article_html))
+            sanitized = sanitize_html(article.article_html)
+            result.set_if_longer('content', sanitized)
         if article.authors:
             result.set('authors', article.authors, 2)
         if len(str(article.publish_date)) > 0:

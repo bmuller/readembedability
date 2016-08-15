@@ -1,37 +1,37 @@
-from pkg_resources import resource_string, resource_filename
-
-from nltk.tokenize.regexp import WordPunctTokenizer
 from collections import Counter
 from collections import deque
 from operator import itemgetter
-import nltk
 import heapq
 import re
+from pkg_resources import resource_string, resource_filename
 
-from readembedability.utils import most_common
+from nltk.tokenize.regexp import WordPunctTokenizer
+import nltk
+
+from readembedability.utils import most_common, unique
+from readembedability.parsers.base import BaseParser
+
+# These are taken from MySQL (NLTK's stopwords were a joke):
+# http://dev.mysql.com/tech-resources/articles/full-text-revealed.html
+_RSTRING = resource_string('readembedability', 'data/stopwords.txt')
+STOPWORDS = str(_RSTRING, 'utf-8').strip().split("\n")
+_RFNAME = resource_filename('readembedability', 'data/english.pickle')
+PUNKT = nltk.data.load(_RFNAME)
 
 
-# These are taken from MySQL - http://dev.mysql.com/tech-resources/articles/full-text-revealed.html
-# NLTK's stopwords were a joke
-STOPWORDS = str(resource_string('readembedability', 'data/stopwords.txt'), 'utf-8').strip().split("\n")
-PUNKT = nltk.data.load(resource_filename('readembedability', 'data/english.pickle'))
-
-
-def hasdigit(s):
-    return any([y.isdigit() for y in s])
-
-
+# pylint: disable=too-many-instance-attributes
 class Summarizer:
     def __init__(self, text, title):
-        # clean up text a bit - if there are two blank lines consider it a sentence break
-        # also, replace multiple newlines and spaces with a single space.
+        # clean up text a bit - if there are two blank lines consider it a
+        # sentence break. also, replace multiple newlines and spaces with
+        # a single space.
+        # pylint: disable=anomalous-backslash-in-string
         self.text = re.sub("[\n\ ]+", " ", re.sub("\n\s*\n+", ". ", text))
         self.lower_text = self.text.lower()
         self.title = title
         self.summarize()
 
-
-    def getCapitalization(self, word):
+    def common_cap(self, word):
         """
         Get the most common capitalization of this word.
         """
@@ -44,8 +44,7 @@ class Summarizer:
             lindex = self.lower_text.find(word, rindex)
         return most_common(versions)[0]
 
-
-    def getEntityFromSentence(self, originalcase, words):
+    def get_entity_from_sentence(self, originalcase, words):
         """
         Return array of words ready to join to make original entity - i.e.,
         ['Chief', 'Justice', 'Roberts']
@@ -54,57 +53,58 @@ class Summarizer:
         entity = deque([originalcase])
 
         lindex = index - 1
-        while lindex > 0 and self.getCapitalization(words[lindex])[0].isupper():
-            entity.appendleft(self.getCapitalization(words[lindex]))
+        while lindex > 0 and self.common_cap(words[lindex])[0].isupper():
+            entity.appendleft(self.common_cap(words[lindex]))
             lindex -= 1
 
         rindex = index + 1
-        while rindex < len(words) and self.getCapitalization(words[rindex])[0].isupper():
-            entity.append(self.getCapitalization(words[rindex]))
+        size = len(words)
+        while rindex < size and self.common_cap(words[rindex])[0].isupper():
+            entity.append(self.common_cap(words[rindex]))
             rindex += 1
 
         return entity
 
-
-    def getEntity(self, word, originalcase):
+    def get_entity(self, originalcase):
         tokenizer = WordPunctTokenizer()
         for sentence in self.raw_sentences:
             words = tokenizer.tokenize(sentence.strip())
             if originalcase in words:
-                entity = self.getEntityFromSentence(originalcase, words)
+                entity = self.get_entity_from_sentence(originalcase, words)
                 if len(entity) > 1:
                     return " ".join(entity)
         return originalcase
-
 
     def keywords(self, count=5):
         results = []
         atomresults = []
         for word in map(itemgetter(0), self.boosted.most_common()):
-            if word not in atomresults and word.isalnum() and not hasdigit(word):
-                original = self.getCapitalization(word)
+            if word not in atomresults and word.isalpha():
+                original = self.common_cap(word)
                 if word != original:
-                    original = self.getEntity(word, original)
+                    # this might actually be an entity
+                    original = self.get_entity(original)
+                atomresults.append(word)
                 results.append(original)
+                results = unique(results)
                 if len(results) == count:
                     return results
-                atomresults += original.lower().split()
         return results
 
     def summary(self, max_sentence_count=4, sufficient_word_count=70):
         """
-        Stop adding sentences when either max_sentence_count is reached or the # of words is >=
-        to sufficient_word_count.
+        Stop adding sentences when either max_sentence_count is reached
+        or the # of words is >= to sufficient_word_count.
         """
         top = heapq.nlargest(max_sentence_count, self.sentences)
-        ss = [s[1] for s in sorted(top, key=itemgetter(2))]
-        if len(ss) == 0:
+        sentences = [s[1] for s in sorted(top, key=itemgetter(2))]
+        if len(sentences) == 0:
             return ""
-        result = ss[0]
-        for s in ss[1:]:
+        result = sentences[0]
+        for sentence in sentences[1:]:
             if len(result.split(" ")) >= sufficient_word_count:
                 return result
-            result += " " + s
+            result += " " + sentence
         return result
 
     def summarize(self):
@@ -124,6 +124,7 @@ class Summarizer:
 
         # now get a score per sentence, based on location and # of keywords
         freqwords = map(itemgetter(0), self.boosted.most_common(100))
+        # pylint: disable=no-member
         self.raw_sentences = PUNKT.tokenize(self.text)
         for index, sentence in enumerate(self.raw_sentences):
             sentence = sentence.strip()
@@ -138,7 +139,7 @@ class Summarizer:
                 heapq.heappush(self.sentences, (score, sentence, index))
 
     @classmethod
-    def get_words(klass, text):
+    def get_words(cls, text):
         tokenizer = WordPunctTokenizer()
         words = Counter()
         if text is None:
@@ -150,11 +151,11 @@ class Summarizer:
         return words
 
     @classmethod
-    def has_sentenace(klass, text):
+    def has_sentence(cls, text):
         text = text.strip()
 
         # more than one word
-        if len(klass.get_words(text)) > 1:
+        if len(cls.get_words(text)) > 1:
             return True
 
         # or one word that ends in a period
@@ -162,3 +163,20 @@ class Summarizer:
             return True
 
         return False
+
+
+class SummarizingParser(BaseParser):
+    async def enrich(self, result):
+        if self.soup is None:
+            return result
+
+        if '_text' not in result:
+            result.set('_text', self.soup.all_text())
+
+        sumzer = Summarizer(result.get('_text'), result.get('title'))
+        summary = sumzer.summary()
+        if len(summary) > 0:
+            result.set('summary', summary, 3)
+        keywords = unique(result.get('keywords') + sumzer.keywords())
+        result.set('keywords', keywords)
+        return result

@@ -1,6 +1,5 @@
 from collections import defaultdict
 
-from dateutil.parser import parse as dateutil_parse
 from robostrippy.utils import absolute_url
 
 from readembedability.parsers.html import SmartHTMLDocument
@@ -13,7 +12,7 @@ class ParseResult:
         # this is used for logging
         self.current_parser = None
         self.log = defaultdict(list)
-        
+
         self.set('url', str(url), 4)
         self.set('embed', False)
         self.set('primary_image', None)
@@ -48,6 +47,10 @@ class ParseResult:
         self.props[prop] = (value, confidence)
         return self
 
+    def has(self, prop):
+        value = self.get(prop)
+        return value is not None and len(value) > 0
+
     def add(self, prop, items, confidence=None, unique=True):
         """
         If confidence is None, then the current value will be used if items
@@ -56,8 +59,8 @@ class ParseResult:
         if prop not in self:
             values = list(set(items)) if unique else items
             if confidence is None:
-                return self.set(prop, items)
-            return self.set(prop, items, confidence)
+                return self.set(prop, values)
+            return self.set(prop, values, confidence)
 
         value, exconf = self.props[prop]
         value += items
@@ -84,8 +87,8 @@ class ParseResult:
         For debugging.
         """
         parts = []
-        for k, v in self.props.items():
-            value, confidence = v
+        for k, vconf in self.props.items():
+            value, confidence = vconf
             parts += ["(%i) %s = %s" % (confidence, k, value)]
         return "\n\n".join(parts)
 
@@ -99,25 +102,17 @@ class BaseParser:
         self.url = response.url
         self.content = response.body
 
-        if response.isText():
-            self.content = '<html><body><pre>%s</pre></body></html>' % response.body
+        if response.is_text():
+            tbody = '<html><body><pre>%s</pre></body></html>'
+            self.content = tbody % response.body
 
         if self.content is not None and "html>" in self.content:
-            self.bs = SmartHTMLDocument(self.content)
+            self.soup = SmartHTMLDocument(self.content)
         else:
-            self.bs = None
-
-
-    def parse_date(self, datestring):
-        try:
-            return dateutil_parse(datestring, fuzzy=True)
-        except:
-            return None
-
+            self.soup = None
 
     def absoluteify(self, path):
         return absolute_url(self.url, path)
-
 
     async def enrich(self, result):
         """

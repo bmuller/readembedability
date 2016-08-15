@@ -5,8 +5,8 @@ from readembedability.parsers.base import BaseParser
 
 class OEmbedParser(BaseParser):
     async def enrich(self, result):
-        # don't oembed articles
-        if self.bs.type_guess() == 'article':
+        # Don't oembed articles
+        if self.soup is None or self.soup.type_guess() == 'article':
             return result
 
         oembed = await get_embed_from_content(self.response.body)

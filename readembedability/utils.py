@@ -1,9 +1,11 @@
 from urllib.parse import urlparse, parse_qs, urlunparse, urlencode
 import re
-import operator
 import datetime
 from collections import Counter
 
+from dateutil.parser import parse as dateutil_parse
+
+# pylint: disable=anomalous-backslash-in-string
 URL_DATE_MDY = re.compile("/\d\d?/\d\d?/\d\d\d\d/")
 URL_DATE_YMD = re.compile("/\d\d\d\d/\d\d?/\d\d?/")
 
@@ -15,25 +17,23 @@ class URL:
         self._parts = list(urlparse(url))
         self._query = parse_qs(self._parts[4])
 
-    def getPath(self):
+    @property
+    def path(self):
         return self._parts[2]
 
-    def getHost(self):
+    @property
+    def host(self):
         return self._parts[1]
 
-    def getParam(self, name, default=None):
-        return self._query.get(name, [default])[0]
+    @property
+    def top_host(self):
+        parts = self.host.split('.')
+        if len(parts) < 2:
+            return parts[0]
+        return ".".join(parts[-2:])
 
-    def setParam(self, name, value):
-        self._query[name] = [value]
-        return self
-
-    def setParams(self, **kwargs):
-        for k, v in kwargs.iteritems():
-            self.setParam(k, v)
-        return self
-
-    def getDate(self):
+    @property
+    def url_date(self):
         url = self._parts[2]
         year, month, day = None, None, None
         match = URL_DATE_YMD.search(url)
@@ -51,6 +51,21 @@ class URL:
 
         return None
 
+    def get_param(self, name, default=None):
+        return self._query.get(name, [default])[0]
+
+    def set_param(self, name, value):
+        self._query[name] = [value]
+        return self
+
+    def set_params(self, **kwargs):
+        for key, value in kwargs.items():
+            self.set_param(key, value)
+        return self
+
+    def startswith(self, prefix):
+        return str(self).lower().startswith(prefix.lower())
+
     def __str__(self):
         nquery = {}
         for key, values in self._query.items():
@@ -58,29 +73,37 @@ class URL:
         self._parts[4] = urlencode(nquery)
         return urlunparse(self._parts)
 
-    def startswith(self, prefix):
-        return str(self).lower().startswith(prefix.lower())
-
 
 def unique(iterable):
     """
-    In order uniquer - (cause list(set(iter)) doesn't maintain order)
+    In order uniquer - (cause list(set(iter)) doesn't maintain order).
+    Should be the fastest way to do this per:
+    https://www.peterbe.com/plog/uniqifiers-benchmark
     """
     result = []
-    for x in iterable:
-        if x not in result:
-            result.append(x)
+    seen = {}
+    for item in iterable:
+        if item not in seen:
+            seen[item] = 1
+            result.append(item)
     return result
 
 
 def longest(iterable):
-    longest = None
+    best = None
     for item in iterable:
-        if longest is None or len(item) > len(longest):
-            longest = item
-    return longest
+        if best is None or len(item) > len(best):
+            best = item
+    return best
 
 
 def most_common(iterable, count=1):
     common = Counter(iterable).most_common(count)
     return [i[0] for i in common]
+
+
+def parse_date(datestring):
+    try:
+        return dateutil_parse(datestring, fuzzy=True)
+    except (ValueError, OverflowError):
+        return None

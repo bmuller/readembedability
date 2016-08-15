@@ -1,13 +1,30 @@
 import cgi
 import json
 import logging
-import aiohttp
 import asyncio
+
+import aiohttp
 
 from readembedability.utils import URL
 from readembedability import __version__
 
-log = logging.getLogger(__name__)
+LOG = logging.getLogger(__name__)
+
+FEED_CONTENT_TYPES = [
+    "text/rss",
+    "text/atom",
+    "application/rss",
+    "application/rss+xml",
+    "text/xml",
+    "application/xml"
+]
+
+IMAGE_CONTENT_TYPES = [
+    "image/gif",
+    "image/jpeg",
+    "image/png",
+    "image/svg+xml"
+]
 
 
 class ResponseTooLargeError(Exception):
@@ -20,12 +37,13 @@ class HTTPResponse:
         """
         Param maxsize has a 3mb cutoff by default.
         """
-        self.response = response        
+        self.response = response
         self.maxsize = maxsize
         self.status = response.status
         self.status = response.status
-        self.url = response.url        
+        self.url = response.url
         self.headers = {}
+        self.body = None
         for key, value in response.raw_headers:
             self.headers[key.decode().lower()] = value.decode()
         self.content_type = None
@@ -43,27 +61,27 @@ class HTTPResponse:
         if not self.response.content.at_eof():
             raise ResponseTooLargeError
 
+        # pylint: disable=protected-access
         self.response._content = body
         # use aiohttp to decode
         self.body = await self.response.text()
-        
 
-    def isHTML(self):
+    def is_html(self):
         return self.content_type == "text/html"
 
-    def isFeed(self):
-        feeds = [ "text/rss", "text/atom", "application/rss", "application/rss+xml", "text/xml", "application/xml" ]
-        return self.content_type in feeds
+    def is_feed(self):
+        return self.content_type in FEED_CONTENT_TYPES
 
-    def isImage(self):
-        ctypes = [ "image/gif", "image/jpeg", "image/png", "image/svg+xml" ]
-        return self.content_type in ctypes
+    def is_image(self):
+        return self.content_type in IMAGE_CONTENT_TYPES
 
-    def isText(self):
-        ctypes = ["text/plain"]
-        return self.content_type in ctypes
+    def is_text(self):
+        return self.content_type == "text/plain"
 
-    def toJSON(self):
+    def is_pdf(self):
+        return self.content_type == "application/pdf"
+
+    def to_json(self):
         return json.loads(self.body)
 
     def __str__(self):
@@ -73,23 +91,22 @@ class HTTPResponse:
 async def get_page(url, headers=None, timeout=10):
     headers = headers or {}
     headers['User-Agent'] = "readembedability/%s" % __version__
-    #headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36'
 
     if not isinstance(url, URL):
         url = URL(url)
     surl = str(url)
 
-    log.info("Attempting to download %s" % url)
+    LOG.info("Attempting to download %s", url)
     try:
         with aiohttp.Timeout(timeout):
             async with aiohttp.ClientSession(headers=headers) as session:
                 async with session.get(surl) as resp:
                     result = HTTPResponse(resp)
                     await result.process()
-    except aiohttp.errors.ClientOSError as e:
-        log.error("Error fetching %s: %s" % (url, e))
+    except aiohttp.errors.ClientOSError as error:
+        LOG.error("Error fetching %s: %s", url, error)
         result = None
     except asyncio.TimeoutError:
-        log.error("Timeout reached for %s" % url)
+        LOG.error("Timeout reached for %s", url)
         result = None
     return result

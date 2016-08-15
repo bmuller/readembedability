@@ -1,25 +1,36 @@
-from operator import methodcaller
 import logging
 
 from readembedability.io import get_page
 from readembedability.utils import URL
 from readembedability.parsers.base import ParseResult
-from readembedability.parsers.assets import ImageTypeParser, ImagesParser, PDFTypeParser, LastDitchMedia
-from readembedability.parsers.oembed import OEmbedParser
-from readembedability.parsers.sanitizers import ReadableLxmlParser, StandardsParser, SummarizingParser
-from readembedability.parsers.sanitizers import LastDitchParser, FinalContentPass
-from readembedability.parsers.custom import CustomParser
-from readembedability.parsers.meta import AuthorParser, DatePublishedParser
-from readembedability.parsers.newspaper import NewspaperParser
+from readembedability.parsers import assets
+from readembedability.parsers import oembed
+from readembedability.parsers import content
+from readembedability.parsers import meta
+from readembedability.parsers import custom
+from readembedability.parsers import text
 
-log = logging.getLogger(__name__)
+LOG = logging.getLogger(__name__)
 
-PARSERS = [CustomParser, PDFTypeParser, ImageTypeParser, NewspaperParser, ImagesParser, OEmbedParser,
-           StandardsParser, ReadableLxmlParser, LastDitchParser, LastDitchMedia, FinalContentPass,
-           SummarizingParser, AuthorParser, DatePublishedParser]
+PARSERS = [
+    custom.CustomParser,
+    assets.PDFTypeParser,
+    assets.ImageTypeParser,
+    content.NewspaperParser,
+    assets.ImagesParser,
+    oembed.OEmbedParser,
+    meta.StandardsParser,
+    content.ReadableLxmlParser,
+    content.LastDitchParser,
+    assets.LastDitchMedia,
+    content.FinalContentPass,
+    text.SummarizingParser,
+    meta.AuthorParser,
+    meta.DatePublishedParser
+]
 
 
-async def getReadembedable(url):
+async def get_readembedable(url):
     if not isinstance(url, URL):
         url = URL(url)
 
@@ -27,14 +38,14 @@ async def getReadembedable(url):
     page = await get_page(url)
     # this happens if we can't even fetch
     if page is None:
-        log.error("Could not contact server for %s" % url)
+        LOG.error("Could not contact server for %s", url)
         result.set('success', False)
         return result.to_dict()
 
     result.set('canonical_url', page.url)
     # this happens if we can contact server but not a 200
     if page.status != 200:
-        log.err("Download of %s returned HTTP respond of %i" % (url, page.status))
+        LOG.error("%s fetch returned HTTP code %i", url, page.status)
         result.set('success', False)
         return result.to_dict()
 
