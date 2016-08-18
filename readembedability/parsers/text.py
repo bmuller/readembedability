@@ -5,7 +5,7 @@ import heapq
 import re
 from pkg_resources import resource_string, resource_filename
 
-from nltk.tokenize.regexp import WordPunctTokenizer
+from nltk.tokenize.regexp import RegexpTokenizer
 import nltk
 
 from readembedability.utils import most_common, unique
@@ -17,6 +17,16 @@ _RSTRING = resource_string('readembedability', 'data/stopwords.txt')
 STOPWORDS = str(_RSTRING, 'utf-8').strip().split("\n")
 _RFNAME = resource_filename('readembedability', 'data/english.pickle')
 PUNKT = nltk.data.load(_RFNAME)
+
+
+class WordPunctTokenizer(RegexpTokenizer):
+    """
+    Just like:
+    http://www.nltk.org/api/nltk.tokenize.html#nltk.tokenize.regexp.WordPunctTokenizer
+    except consider a '-' to join parts of a word (like 'Ben-Hur').
+    """
+    def __init__(self):
+        RegexpTokenizer.__init__(self, r'\w+[-\w+]*|[^\w\s]+')
 
 
 # pylint: disable=too-many-instance-attributes
@@ -79,7 +89,7 @@ class Summarizer:
         results = []
         atomresults = []
         for word in map(itemgetter(0), self.boosted.most_common()):
-            if word not in atomresults and word.isalpha():
+            if word not in atomresults and Summarizer.is_word(word):
                 original = self.common_cap(word)
                 if word != original:
                     # this might actually be an entity
@@ -151,6 +161,14 @@ class Summarizer:
         return words
 
     @classmethod
+    def is_word(cls, text):
+        """
+        If the text is alpha numeric (excluding '-' chars)
+        then return True
+        """
+        return text.replace('-', '').isalpha()
+
+    @classmethod
     def has_sentence(cls, text):
         text = text.strip()
 
@@ -167,7 +185,7 @@ class Summarizer:
 
 class SummarizingParser(BaseParser):
     async def enrich(self, result):
-        if self.soup is None:
+        if not self.soup:
             return result
 
         if '_text' not in result:

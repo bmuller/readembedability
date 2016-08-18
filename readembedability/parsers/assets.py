@@ -96,9 +96,9 @@ class ImagesParser(BaseParser):
             result.set('primary_image', largest[0])
             secondaries = result.get('secondary_images') + largest[1:]
             # make sure we don't include primary in the secondary
-            prim = result.get('primary_image')
-            secondaries = [img for img in secondaries if img != prim]
-            result.set('secondary_images', secondaries)
+            prim = URL(result.get('primary_image')).basename
+            seconds = [img for img in secondaries if URL(img).basename != prim]
+            result.set('secondary_images', seconds)
         return result
 
     async def get_largest(self, sources, count):

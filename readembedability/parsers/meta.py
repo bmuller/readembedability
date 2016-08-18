@@ -120,3 +120,19 @@ class StandardsParser(BaseParser):
         result.set('keywords', unique(keywords))
 
         return result
+
+
+class SocialParser(BaseParser):
+    async def enrich(self, result):
+        if not self.soup:
+            return result
+
+        ogtitle = self.soup.find_all("meta", property="og:title", content=True)
+        if ogtitle:
+            result.set('title', ogtitle[0]['content'], 2)
+
+        attrs = {'property': 'og:description', 'content': True}
+        ogdesc = self.soup.find_all("meta", **attrs)
+        if ogdesc:
+            result.set_if_longer('summary', ogdesc[0]['content'])
+        return result

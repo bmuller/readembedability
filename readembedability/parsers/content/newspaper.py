@@ -28,7 +28,7 @@ class NewspaperParser(BaseParser):
     async def enrich(self, result):
         article = Article(self.url, config=FixedArticleConfig())
         article.config.fetch_image = False
-        article.set_html(self.response.body)
+        article.set_html(sanitize_html(self.response.body))
         article.parse()
 
         result.set_if_longer('title', article.title, 2)
@@ -44,8 +44,9 @@ class NewspaperParser(BaseParser):
         result.add('keywords', list(article.keywords))
         result.add('keywords', list(article.tags))
         result.add('_candidate_images', list(article.imgs))
+        # Primary image guess is actually pretty crappy
         if article.top_image:
-            result.set('primary_image', article.top_img, 2)
+            result.add('_candidate_images', [article.top_img])
 
         text = ""
         for paragraph in article.text.split("\n"):

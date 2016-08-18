@@ -88,9 +88,13 @@ class HTTPResponse:
         return self.body
 
 
-async def get_page(url, headers=None, timeout=10):
+async def get_page(url, headers=None, timeout=10, mobile=False):
     headers = headers or {}
-    headers['User-Agent'] = "readembedability/%s" % __version__
+    if 'User-Agent' not in headers:
+        usera = "readembedability/%s" % __version__
+        if mobile:
+            usera += " (Mobile)"
+        headers['User-Agent'] = usera
 
     if not isinstance(url, URL):
         url = URL(url)

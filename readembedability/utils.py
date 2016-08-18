@@ -18,6 +18,10 @@ class URL:
         self._query = parse_qs(self._parts[4])
 
     @property
+    def basename(self):
+        return self.path.split('/')[-1]
+
+    @property
     def path(self):
         return self._parts[2]
 

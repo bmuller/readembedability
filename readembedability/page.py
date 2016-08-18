@@ -14,8 +14,10 @@ LOG = logging.getLogger(__name__)
 
 PARSERS = [
     custom.CustomParser,
+    content.AMPParser,
     assets.PDFTypeParser,
     assets.ImageTypeParser,
+    meta.SocialParser,
     content.NewspaperParser,
     assets.ImagesParser,
     oembed.OEmbedParser,
@@ -40,14 +42,14 @@ async def get_readembedable_result(url):
     if page is None:
         LOG.error("Could not contact server for %s", url)
         result.set('success', False)
-        return result.to_dict()
+        return result
 
     result.set('canonical_url', page.url)
     # this happens if we can contact server but not a 200
     if page.status != 200:
         LOG.error("%s fetch returned HTTP code %i", url, page.status)
         result.set('success', False)
-        return result.to_dict()
+        return result
 
     result.set('success', True, 4)
     for parser_class in PARSERS:

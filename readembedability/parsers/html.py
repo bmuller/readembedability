@@ -94,6 +94,9 @@ class SmartElem:
             return False
         if self.elem.name == 'a' and 'sign up' in self.elem.get_text().lower():
             return False
+        # the class attribute is a list
+        if 'caption' in " ".join(self.elem.attrs.get('class', [])):
+            return False
         return True
 
     def _is_virtuous_text(self):

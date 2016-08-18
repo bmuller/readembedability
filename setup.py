@@ -18,7 +18,7 @@ setup(
                       'pyOpenSSL>=16.0.0',
                       'beautifulsoup4==4.5.1',
                       'nltk==3.2.1',
-                      'fastimage==1.0.0',
+                      'fastimage==1.1.0',
                       'pytidylib==0.2.4',
                       'debmeo==2.1.1',
                       'newspaper3k==0.1.7',
