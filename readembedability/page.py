@@ -32,12 +32,12 @@ PARSERS = [
 ]
 
 
-async def get_readembedable_result(url):
+async def get_readembedable_result(url, headers=None):
     if not isinstance(url, URL):
         url = URL(url)
 
     result = ParseResult(url)
-    page = await get_page(url)
+    page = await get_page(url, headers)
     # this happens if we can't even fetch
     if page is None:
         LOG.error("Could not contact server for %s", url)
@@ -56,9 +56,9 @@ async def get_readembedable_result(url):
         parser = parser_class(page)
         result.set_parser_name(parser_class.__name__)
         result = await parser.enrich(result)
-    return result
+    return (page, result)
 
 
-async def get_readembedable(url):
-    result = await get_readembedable_result(url)
+async def get_readembedable(url, headers=None):
+    _, result = await get_readembedable_result(url, headers)
     return result.to_dict()

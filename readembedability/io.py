@@ -40,15 +40,15 @@ class HTTPResponse:
         self.response = response
         self.maxsize = maxsize
         self.status = response.status
-        self.status = response.status
         self.url = response.url
         self.headers = {}
         self.body = None
         for key, value in response.raw_headers:
             self.headers[key.decode().lower()] = value.decode()
+
         self.content_type = None
         content_types = self.headers.get('content-type', None)
-        if content_types is not None:
+        if content_types:
             self.content_type, _ = cgi.parse_header(content_types)
 
     async def process(self):
