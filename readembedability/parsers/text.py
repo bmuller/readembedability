@@ -185,10 +185,9 @@ class Summarizer:
 
 class SummarizingParser(BaseParser):
     async def enrich(self, result):
-        if not self.soup:
-            return result
-
         if '_text' not in result:
+            if not self.soup:
+                return result
             result.set('_text', self.soup.all_text())
 
         sumzer = Summarizer(result.get('_text'), result.get('title'))

@@ -13,6 +13,8 @@ class AMPParser(BaseParser):
             return result
 
         response = await get_page(links[0]['href'], mobile=True)
+        if not response:
+            return result
         return AMPParser(response).amp_enrich(result)
 
     def amp_enrich(self, result):

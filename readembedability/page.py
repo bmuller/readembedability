@@ -32,24 +32,22 @@ PARSERS = [
 ]
 
 
-async def get_readembedable_result(url, headers=None):
+async def get_readembedable_result(url, **kwargs):
     if not isinstance(url, URL):
         url = URL(url)
 
     result = ParseResult(url)
-    page = await get_page(url, headers)
+    page = await get_page(url, **kwargs)
     # this happens if we can't even fetch
     if page is None:
         LOG.error("Could not contact server for %s", url)
-        result.set('success', False)
-        return result
+        return (None, result)
 
     result.set('canonical_url', page.url)
     # this happens if we can contact server but not a 200
     if page.status != 200:
         LOG.error("%s fetch returned HTTP code %i", url, page.status)
-        result.set('success', False)
-        return result
+        return (None, result)
 
     result.set('success', True, 4)
     for parser_class in PARSERS:
@@ -59,6 +57,6 @@ async def get_readembedable_result(url, headers=None):
     return (page, result)
 
 
-async def get_readembedable(url, headers=None):
-    _, result = await get_readembedable_result(url, headers)
+async def get_readembedable(url, **kwargs):
+    _, result = await get_readembedable_result(url, **kwargs)
     return result.to_dict()

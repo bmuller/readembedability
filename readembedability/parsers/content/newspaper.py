@@ -11,11 +11,18 @@ from readembedability.parsers.html import sanitize_html
 
 
 class FixedParser(Parser):
+    """
+    This exists because the original:
+    https://github.com/codelucas/newspaper/blob/master/newspaper/parsers.py
+
+    swallows the exception.
+    """
     @classmethod
     def fromstring(cls, html):
+        html = cls.get_unicode_html(html)
         if html.startswith('<?'):
             html = re.sub(r'^\<\?.*?\?\>', '', html, flags=re.DOTALL)
-        cls.doc = lxml.html.fromstring(html.encode('utf-8'))
+        cls.doc = lxml.html.fromstring(html)
         return cls.doc
 
 
@@ -28,7 +35,7 @@ class NewspaperParser(BaseParser):
     async def enrich(self, result):
         article = Article(self.url, config=FixedArticleConfig())
         article.config.fetch_image = False
-        article.set_html(sanitize_html(self.response.body))
+        article.set_html(self.response.body)
         article.parse()
 
         result.set_if_longer('title', article.title, 2)

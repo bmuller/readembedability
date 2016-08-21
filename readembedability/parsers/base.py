@@ -25,6 +25,7 @@ class ParseResult:
         self.set('published_at', None)
         self.set('keywords', [])
         self.set('canonical_url', None)
+        self.set('success', False)
 
     def set_parser_name(self, name):
         self.current_parser = name
@@ -80,7 +81,8 @@ class ParseResult:
         return default
 
     def to_dict(self):
-        return {k: v for k, v in self.props.items() if not k.startswith('_')}
+        keys = [k for k in self.props.keys() if not k.startswith('_')]
+        return {k: self.get(k) for k in keys}
 
     def __str__(self):
         """

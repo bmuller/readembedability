@@ -15,7 +15,7 @@ if len(sys.argv) < 2:
     sys.exit(0)
 
 async def fetch(url):
-    result = await get_readembedable_result(url)
+    _, result = await get_readembedable_result(url)
     for prop, entries in result.log.items():
         print("---------------------------------")
         print("Property:", prop)
