@@ -102,6 +102,8 @@ class ImagesParser(BaseParser):
         return result
 
     async def get_largest(self, sources, count):
+        # get first 100 images that don't have "pixel" in the url
+        sources = [s for s in sources if 'pixel' not in s][:100]
         urlsizes = await asyncio.gather(*map(self.get_image_size, sources))
         images = []
         for url, size in urlsizes:
@@ -121,5 +123,8 @@ class ImagesParser(BaseParser):
         return map(self.absoluteify, images)
 
     async def get_image_size(self, url):
-        size = await detect.get_size(url)
+        try:
+            size = await detect.get_size(url)
+        except detect.DownloadError:
+            size = None
         return (url, size)

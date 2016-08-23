@@ -42,7 +42,8 @@ class AuthorParser(BaseParser):
         # try standards based approach
         author = self.get_standards()
         if author is not None:
-            result.set('authors', [self.fix_name(author)], 3)
+            authors = map(self.fix_name, author.split(' and '))
+            result.set('authors', list(authors), 3)
             return result
 
         for txt in self.soup.text_chunks():
@@ -55,7 +56,7 @@ class AuthorParser(BaseParser):
             isbyline = self.has_byline_prefix(parts[0])
             if len(parts) in range(2, overlen) and isbyline:
                 name = " ".join(parts[1:])
-                if author is None or len(name) < author:
+                if author is None or len(name) < len(author):
                     author = name
 
         if author:
