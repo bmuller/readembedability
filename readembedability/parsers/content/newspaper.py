@@ -34,7 +34,7 @@ class FixedArticleConfig(ArticleConfiguration):
 class NewspaperParser(BaseParser):
     async def enrich(self, result):
         article = Article(self.url, config=FixedArticleConfig())
-        article.config.fetch_image = False
+        article.config.fetch_images = False
         article.set_html(sanitize_html(self.response.body))
         article.parse()
 
