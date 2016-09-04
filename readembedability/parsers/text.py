@@ -8,7 +8,7 @@ from pkg_resources import resource_string, resource_filename
 from nltk.tokenize.regexp import RegexpTokenizer
 import nltk
 
-from readembedability.utils import most_common, unique
+from readembedability.utils import most_common, unique, longest_unique
 from readembedability.parsers.base import BaseParser
 
 # These are taken from MySQL (NLTK's stopwords were a joke):
@@ -52,6 +52,9 @@ class Summarizer:
             rindex = lindex + len(word)
             versions.append(self.text[lindex:rindex])
             lindex = self.lower_text.find(word, rindex)
+        # possible we've never seen it before
+        if not versions:
+            return word
         return most_common(versions)[0]
 
     def get_entity_from_sentence(self, originalcase, words):
@@ -194,6 +197,8 @@ class SummarizingParser(BaseParser):
         summary = sumzer.summary()
         if len(summary) > 0:
             result.set('summary', summary, 3)
-        keywords = unique(result.get('keywords') + sumzer.keywords())
+
+        existing = map(sumzer.common_cap, result.get('keywords'))
+        keywords = longest_unique(list(existing) + sumzer.keywords())
         result.set('keywords', keywords)
         return result

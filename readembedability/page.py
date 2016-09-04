@@ -22,6 +22,7 @@ PARSERS = [
     assets.ImagesParser,
     oembed.OEmbedParser,
     meta.StandardsParser,
+    meta.LDJSONParser,
     content.ReadableLxmlParser,
     content.LastDitchParser,
     assets.LastDitchMedia,

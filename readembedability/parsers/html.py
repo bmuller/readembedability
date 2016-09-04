@@ -32,6 +32,7 @@ CLEAN_ELEMS = [
     "ol",
     "p",
     "pre",
+    "section",
     "span",
     "table",
     "tbody",
@@ -91,14 +92,22 @@ class SmartElem:
         self.elem.extract()
 
     def _is_virtuous_tag(self):
+        attrs = self.elem.attrs
+        result = True
         if self.elem.name not in CLEAN_ELEMS:
-            return False
+            result = False
         if self.elem.name == 'a' and 'sign up' in self.elem.get_text().lower():
-            return False
+            result = False
+        if self.elem.name == 'a' and 'javascript' in attrs.get('href', ''):
+            result = False
+        if self.elem.name == 'a' and not attrs.get('href'):
+            result = False
+        if self.elem.name == 'img' and 'data:image' in attrs.get('src', ''):
+            result = False
         # the class attribute is a list
         if 'caption' in " ".join(self.elem.attrs.get('class', [])):
-            return False
-        return True
+            result = False
+        return result
 
     def _is_virtuous_text(self):
         text = str(self.elem).lower()

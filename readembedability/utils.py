@@ -111,3 +111,27 @@ def parse_date(datestring):
         return dateutil_parse(datestring, fuzzy=True)
     except (ValueError, OverflowError):
         return None
+
+
+def longest_unique(words):
+    """
+    Get a list of unique values from the given words.  If a
+    word is a shorter version of another word, keep only the
+    longest version and dump the short one.
+    """
+    result = []
+    for word in words:
+        add = True
+        lword = word.lower()
+        for index, seen in enumerate(result):
+            slower = seen.lower()
+            if lword == slower:
+                add = False
+            if lword in slower:
+                add = False
+            if slower in lword:
+                add = False
+                result[index] = word
+        if add:
+            result.append(word)
+    return result

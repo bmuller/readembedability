@@ -71,8 +71,10 @@ class ImagesParser(BaseParser):
             badids = ["sidebar", "comment", "footer", "header"]
             badparents = [image.find_parents(id=id, limit=1) for id in badids]
             if sum(map(len, badparents)) == 0:
-                url = self.absoluteify(image['src'])
-                images.append(url)
+                url = image['src']
+                if not url.startswith('data:image'):
+                    url = self.absoluteify(url)
+                    images.append(url)
         return images
 
     @classmethod

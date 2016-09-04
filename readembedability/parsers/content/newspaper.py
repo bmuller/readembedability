@@ -35,7 +35,7 @@ class NewspaperParser(BaseParser):
     async def enrich(self, result):
         article = Article(self.url, config=FixedArticleConfig())
         article.config.fetch_images = False
-        article.set_html(sanitize_html(self.response.body))
+        article.set_html(self.response.body)
         article.parse()
 
         result.set_if_longer('title', article.title, 2)
@@ -46,7 +46,7 @@ class NewspaperParser(BaseParser):
             result.set_if_longer('content', sanitized)
         if article.authors:
             result.set('authors', article.authors, 2)
-        if len(str(article.publish_date)) > 0:
+        if article.publish_date and len(str(article.publish_date)) > 0:
             result.set('published_at', article.publish_date, 2)
         result.add('keywords', list(article.keywords))
         result.add('keywords', list(article.tags))

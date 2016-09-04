@@ -1,3 +1,4 @@
+import json
 from operator import methodcaller
 from datetime import datetime
 
@@ -70,6 +71,8 @@ class DatePublishedParser(BaseParser):
         attempts = [
             (None, None, {'itemprop': 'datePublished'}),
             ('meta', 'content', {'itemprop': 'datePublished'}),
+            ('meta', 'content', {'property': 'article:modified_time'}),
+            ('meta', 'content', {'property': 'article:published_time'}),
             ('meta', 'content', {'name': 'PublishDate'}),
             ('meta', 'content', {'name': 'CreationDate'}),
             ('time'),
@@ -118,6 +121,10 @@ class StandardsParser(BaseParser):
         keywords = result.get('keywords')
         for genre in self.soup.find_all(itemprop="genre", content=True):
             keywords.append(genre['content'].strip())
+
+        tags = self.soup.find_all('meta', property='article:tag', content=True)
+        for tag in tags:
+            keywords.append(tag['content'].strip())
         result.set('keywords', unique(keywords))
 
         return result
@@ -136,4 +143,28 @@ class SocialParser(BaseParser):
         ogdesc = self.soup.find_all("meta", **attrs)
         if ogdesc:
             result.set_if_longer('summary', ogdesc[0]['content'])
+        return result
+
+
+class LDJSONParser(BaseParser):
+    async def enrich(self, result):
+        if not self.soup:
+            return result
+
+        for elem in self.soup.find_all('script', type="application/ld+json"):
+            obj = json.loads(elem.get_text().strip())
+            if obj.get('@type') == 'NewsArticle':
+                result = self.eat_news_article(obj, result)
+        return result
+
+    # pylint: disable=no-self-use
+    def eat_news_article(self, obj, result):
+        if 'creator' in obj:
+            creator = obj['creator']
+            creator = creator if isinstance(creator, list) else [creator]
+            result.set('authors', creator, 3)
+        if 'dateCreated' in obj:
+            result.set('published_at', parse_date(obj['dateCreated']), 3)
+        if 'headline' in obj:
+            result.set('title', obj['headline'], 3)
         return result
