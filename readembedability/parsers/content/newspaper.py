@@ -1,6 +1,9 @@
 import re
+import codecs
 
 import lxml.html
+# pylint: disable=no-name-in-module
+from lxml.etree import tostring
 from newspaper import Article
 from newspaper.configuration import ArticleConfiguration
 from newspaper.parsers import Parser
@@ -22,6 +25,9 @@ class FixedParser(Parser):
         html = cls.get_unicode_html(html)
         if html.startswith('<?'):
             html = re.sub(r'^\<\?.*?\?\>', '', html, flags=re.DOTALL)
+
+        # lxml parser must have utf8
+        html = codecs.encode(html, 'utf-8')
         cls.doc = lxml.html.fromstring(html)
         return cls.doc
 
@@ -35,15 +41,20 @@ class NewspaperParser(BaseParser):
     async def enrich(self, result):
         article = Article(self.url, config=FixedArticleConfig())
         article.config.fetch_images = False
-        article.set_html(self.response.body)
+        article.set_html(sanitize_html(self.response.body))
         article.parse()
 
         result.set_if_longer('title', article.title, 2)
         if len(article.meta_description) > 0:
             result.set_if_longer('subtitle', article.meta_description, 2)
+
         if len(article.article_html) > 0:
             sanitized = sanitize_html(article.article_html)
             result.set_if_longer('content', sanitized)
+        elif article.top_node is not None:
+            sanitized = sanitize_html(tostring(article.top_node))
+            result.set('content', sanitized, 2)
+
         if article.authors:
             result.set('authors', article.authors, 2)
         if article.publish_date and len(str(article.publish_date)) > 0:

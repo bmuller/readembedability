@@ -14,7 +14,7 @@ class OEmbedParser(BaseParser):
             return result
 
         if 'author_name' in oembed:
-            result.set('author', oembed['author_name'], 3)
+            result.set('authors', [oembed['author_name']], 3)
 
         if 'html' in oembed:
             # if this is a wordpress embed, then let's not call it

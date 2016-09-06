@@ -34,6 +34,7 @@ CLEAN_ELEMS = [
     "pre",
     "section",
     "span",
+    "strong",
     "table",
     "tbody",
     "td",
@@ -72,6 +73,7 @@ def sanitize_html(html):
 class SmartElem:
     def __init__(self, elem):
         self.elem = elem
+        self.attrs = self.elem.attrs if hasattr(self.elem, 'attrs') else {}
 
     def is_text(self):
         if not isinstance(self.elem, NavigableString):
@@ -92,22 +94,44 @@ class SmartElem:
         self.elem.extract()
 
     def _is_virtuous_tag(self):
-        attrs = self.elem.attrs
         result = True
         if self.elem.name not in CLEAN_ELEMS:
             result = False
-        if self.elem.name == 'a' and 'sign up' in self.elem.get_text().lower():
-            result = False
-        if self.elem.name == 'a' and 'javascript' in attrs.get('href', ''):
-            result = False
-        if self.elem.name == 'a' and not attrs.get('href'):
-            result = False
-        if self.elem.name == 'img' and 'data:image' in attrs.get('src', ''):
-            result = False
+        if self.elem.name == 'a':
+            result = self._is_virtuous_anchor()
+        if self.elem.name == 'img':
+            result = self._is_virtuous_image()
         # the class attribute is a list
-        if 'caption' in " ".join(self.elem.attrs.get('class', [])):
+        if 'caption' in " ".join(self.attrs.get('class', [])):
             result = False
         return result
+
+    def _is_virtuous_image(self):
+        """
+        Given that this is an image, is it virtuous?
+        """
+        src = self.attrs.get('src')
+        verbotten = ['data:image']
+        if not src or any([v in src for v in verbotten]):
+            return False
+        return True
+
+    def _is_virtuous_anchor(self):
+        """
+        Given that this is an anchor ('a' elem), is it virtuous?
+        """
+        text = self.elem.get_text().lower().strip()
+        href = self.attrs.get('href')
+
+        verbotten = ['sign up']
+        if not text or any([v in text for v in verbotten]):
+            return False
+
+        verbotten = ['mailto:', 'javascript:', 'twitter.com/share',
+                     'facebook.com/sharer/sharer.php']
+        if not href or any([v in href for v in verbotten]):
+            return False
+        return True
 
     def _is_virtuous_text(self):
         text = str(self.elem).lower()

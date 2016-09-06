@@ -86,24 +86,39 @@ class ImagesParser(BaseParser):
         return valid and (float(height) / float(width)) < MIN_IMG_RATIO
 
     async def enrich(self, result):
-        # get all images, sort by likelihood of usefulness,
-        # then filter by constraints
+        """
+        get all images, sort by likelihood of usefulness, then filter by
+        constraints of size.
+        """
         if self.soup is None:
             return result
 
         sources = self.get_images() + result.get('_candidate_images', [])
-        sources += self.get_social_images()
-        largest = await self.get_largest(unique(sources), 5)
-        if len(largest) > 0:
-            result.set('primary_image', largest[0])
-            secondaries = result.get('secondary_images') + largest[1:]
-            # make sure we don't include primary in the secondary
-            prim = URL(result.get('primary_image')).basename
-            seconds = [img for img in secondaries if URL(img).basename != prim]
-            result.set('secondary_images', seconds)
+        social = self.get_social_images()
+        sources += social
+        largest = await self.get_best(unique(sources), 5)
+        if not largest:
+            return result
+
+        # use good social image if present, else just use biggest
+        bestsocial = list(set(social) & set(largest))
+        primary = bestsocial[0] if bestsocial else largest[0]
+        result.set('primary_image', primary)
+        largest.remove(primary)
+        secondaries = largest
+
+        # make sure we don't include primary in the secondary
+        prim = URL(result.get('primary_image')).basename
+        seconds = [img for img in secondaries if URL(img).basename != prim]
+        result.set('secondary_images', seconds)
         return result
 
-    async def get_largest(self, sources, count):
+    async def get_best(self, sources, count):
+        """
+        Get the best count images from list of sources.  If an image
+        is in the bump list (i.e., the social images) then give it
+        a boost.
+        """
         # get first 100 images that don't have "pixel" in the url
         sources = [s for s in sources if 'pixel' not in s][:100]
         urlsizes = await asyncio.gather(*map(self.get_image_size, sources))
@@ -122,7 +137,7 @@ class ImagesParser(BaseParser):
             mname = "" if meta.get('name') is None else meta['name']
             if mname.startswith("twitter:image"):
                 images.append(meta['content'])
-        return map(self.absoluteify, images)
+        return list(map(self.absoluteify, images))
 
     async def get_image_size(self, url):
         try:

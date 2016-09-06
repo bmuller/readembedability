@@ -26,7 +26,8 @@ class AMPParser(BaseParser):
         if imgs:
             # amp images are really good recommendations
             result.set('_candidate_images', imgs, 2)
-        articles = self.soup.find_all('article')
-        if articles:
-            result.set('content', sanitize_html(str(articles[0])), 2)
+        elems = self.soup.find_all('article') + self.soup.find_all('section')
+        content = " ".join(map(str, elems)).strip()
+        if content:
+            result.set('content', sanitize_html(content), 3)
         return result

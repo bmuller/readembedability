@@ -3,7 +3,7 @@ from operator import methodcaller
 from datetime import datetime
 
 from readembedability.parsers.html import sanitize_html, SmartHTMLDocument
-from readembedability.utils import unique, longest, parse_date, URL
+from readembedability.utils import unique, longest, parse_date, URL, flatten
 from readembedability.parsers.base import BaseParser
 
 
@@ -160,8 +160,9 @@ class LDJSONParser(BaseParser):
     # pylint: disable=no-self-use
     def eat_news_article(self, obj, result):
         if 'creator' in obj:
-            creator = obj['creator']
-            creator = creator if isinstance(creator, list) else [creator]
+            # based on observation, this could be either
+            # a single str, a list, or a list of lists
+            creator = list(flatten(obj['creator']))
             result.set('authors', creator, 3)
         if 'dateCreated' in obj:
             result.set('published_at', parse_date(obj['dateCreated']), 3)

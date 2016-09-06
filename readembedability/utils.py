@@ -135,3 +135,15 @@ def longest_unique(words):
         if add:
             result.append(word)
     return result
+
+
+def flatten(maybelist):
+    """
+    Unlike itertools.chain.from_iterable, this function only flattens
+    lists, not all iterables.
+    """
+    if not isinstance(maybelist, list):
+        yield maybelist
+        return
+    for item in maybelist:
+        yield from flatten(item)
