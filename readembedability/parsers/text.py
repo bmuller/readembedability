@@ -197,6 +197,7 @@ class SummarizingParser(BaseParser):
         summary = sumzer.summary()
         if len(summary) > 0:
             result.set('summary', summary, 3)
+        result.set('wordcount', len(sumzer.words))
 
         existing = map(sumzer.common_cap, result.get('keywords'))
         keywords = longest_unique(list(existing) + sumzer.keywords())

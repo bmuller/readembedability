@@ -22,7 +22,7 @@ class CustomParser(BaseParser):
         return result
 
 
-class FortuneParser(CustomParser):
+class FortuneParser(BaseParser):
     async def enrich(self, result):
         if not self.soup:
             return result
@@ -51,5 +51,13 @@ class FortuneParser(CustomParser):
         return result
 
 
+class NYTimesParser(CustomParser):
+    async def enrich(self, result):
+        if self.response.url.startswith('https://myaccount.nytimes.com/auth/login'):
+            result.set('success', False, 4)
+        return result
+
+
 # pylint: disable=anomalous-backslash-in-string
 CustomParser.register("https?://fortune\.com/", FortuneParser)
+CustomParser.register("https?://.*\.nytimes\.com/", NYTimesParser)

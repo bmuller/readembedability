@@ -39,6 +39,7 @@ async def get_readembedable_result(url, **kwargs):
 
     result = ParseResult(url)
     page = await get_page(url, **kwargs)
+
     # this happens if we can't even fetch
     if page is None:
         LOG.error("Could not contact server for %s", url)
@@ -50,11 +51,14 @@ async def get_readembedable_result(url, **kwargs):
         LOG.error("%s fetch returned HTTP code %i", url, page.status)
         return (None, result)
 
-    result.set('success', True, 4)
+    result.set('success', True)
     for parser_class in PARSERS:
         parser = parser_class(page)
         result.set_parser_name(parser_class.__name__)
         result = await parser.enrich(result)
+        # allow short circuiting
+        if not result.get('success'):
+            return (page, result)
     return (page, result)
 
 
