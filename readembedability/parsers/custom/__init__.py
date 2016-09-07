@@ -53,7 +53,8 @@ class FortuneParser(BaseParser):
 
 class NYTimesParser(CustomParser):
     async def enrich(self, result):
-        if self.response.url.startswith('https://myaccount.nytimes.com/auth/login'):
+        loginurl = 'https://myaccount.nytimes.com/auth/login'
+        if self.response.url.startswith(loginurl):
             result.set('success', False, 4)
         return result
 
