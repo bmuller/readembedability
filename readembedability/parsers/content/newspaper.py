@@ -1,5 +1,4 @@
 import re
-import codecs
 
 import lxml.html
 # pylint: disable=no-name-in-module
@@ -22,12 +21,15 @@ class FixedParser(Parser):
     """
     @classmethod
     def fromstring(cls, html):
-        html = cls.get_unicode_html(html)
+        # next line shouldn't be necessary because
+        # we will always sanitize_html before passing in
+        # html = cls.get_unicode_html(html)
         if html.startswith('<?'):
             html = re.sub(r'^\<\?.*?\?\>', '', html, flags=re.DOTALL)
 
-        # lxml parser must have utf8
-        html = codecs.encode(html, 'utf-8')
+        # lxml parser must have utf8, though the next line was causing
+        # issues when the html was already utf8
+        # html = codecs.encode(html, 'utf-8')
         cls.doc = lxml.html.fromstring(html)
         return cls.doc
 
@@ -72,7 +74,7 @@ class NewspaperParser(BaseParser):
             # this is done to get rid of cases where a stray heading
             # like "Photographs" ends up as a paragraph
             if Summarizer.has_sentence(paragraph):
-                text += paragraph
+                text += " " + paragraph
 
         if len(text) > 0:
             result.set('_text', text, 2)

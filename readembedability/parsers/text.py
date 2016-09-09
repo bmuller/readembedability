@@ -136,7 +136,7 @@ class Summarizer:
                 self.boosted[word] += titular_boost
 
         # now get a score per sentence, based on location and # of keywords
-        freqwords = map(itemgetter(0), self.boosted.most_common(100))
+        freqwords = list(map(itemgetter(0), self.boosted.most_common(100)))
         # pylint: disable=no-member
         self.raw_sentences = PUNKT.tokenize(self.text)
         for index, sentence in enumerate(self.raw_sentences):

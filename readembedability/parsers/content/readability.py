@@ -6,13 +6,8 @@ from readembedability.parsers.base import BaseParser
 
 class ReadableLxmlParser(BaseParser):
     async def enrich(self, result):
-        try:
-            doc = Document(self.content, url=self.url)
-            content = doc.summary(html_partial=True)
-            sanitized = sanitize_html(content)
-            result.setIfLonger('content', sanitized)
-            result.setIfLonger('title', doc.short_title())
-        # pylint: disable=bare-except
-        except:
-            pass
+        doc = Document(self.content, url=self.url)
+        content = doc.summary(html_partial=True)
+        result.set_if_longer('content', sanitize_html(content))
+        result.set_if_longer('title', doc.short_title())
         return result

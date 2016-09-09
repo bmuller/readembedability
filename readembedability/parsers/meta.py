@@ -1,10 +1,13 @@
 import json
 from operator import methodcaller
 from datetime import datetime
+import logging
 
 from readembedability.parsers.html import sanitize_html, SmartHTMLDocument
 from readembedability.utils import unique, longest, parse_date, URL, flatten
 from readembedability.parsers.base import BaseParser
+
+LOG = logging.getLogger(__name__)
 
 
 class AuthorParser(BaseParser):
@@ -30,6 +33,8 @@ class AuthorParser(BaseParser):
 
     def get_standards(self):
         attempts = [
+            ('meta', 'content', {'name': 'sailthru.author'}),
+            ('meta', 'content', {'property': 'author'}),
             ('meta', 'content', {'name': 'author'}),
             (None, None, {'itemprop': 'author'}),
             ('a', None, {'rel': 'author'})
@@ -75,6 +80,7 @@ class DatePublishedParser(BaseParser):
             ('meta', 'content', {'property': 'article:published_time'}),
             ('meta', 'content', {'name': 'PublishDate'}),
             ('meta', 'content', {'name': 'CreationDate'}),
+            ('meta', 'content', {'name': 'date'}),
             ('time'),
             ('meta', 'content', {'name': 'eomportal-lastUpdate'})
         ]
@@ -122,6 +128,10 @@ class StandardsParser(BaseParser):
         for genre in self.soup.find_all(itemprop="genre", content=True):
             keywords.append(genre['content'].strip())
 
+        tags = self.soup.find_all('meta', name='sailthru.tags', content=True)
+        for tag in tags:
+            keywords += [t.strip() for t in tag['content'].split(',')]
+
         tags = self.soup.find_all('meta', property='article:tag', content=True)
         for tag in tags:
             keywords.append(tag['content'].strip())
@@ -152,8 +162,12 @@ class LDJSONParser(BaseParser):
             return result
 
         for elem in self.soup.find_all('script', type="application/ld+json"):
-            obj = json.loads(elem.get_text().strip())
-            if obj.get('@type') == 'NewsArticle':
+            obj = None
+            try:
+                obj = json.loads(elem.get_text().strip())
+            except json.decoder.JSONDecodeError as err:
+                LOG.error(err)
+            if obj and obj.get('@type') == 'NewsArticle':
                 result = self.eat_news_article(obj, result)
         return result
 
