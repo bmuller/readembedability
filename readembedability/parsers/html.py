@@ -135,7 +135,11 @@ class SmartElem:
 
     def _is_virtuous_text(self):
         text = str(self.elem).lower()
-        return not text.startswith('photo by') and len(text) > 0
+        verbotten = ['advertisement', 'photo by', 'continue reading']
+        for verb in verbotten:
+            if text.startswith(verb):
+                return False
+        return len(text) > 0
 
     def is_virtuous(self):
         """
