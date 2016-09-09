@@ -26,8 +26,9 @@ class AMPParser(BaseParser):
         if imgs:
             # amp images are really good recommendations
             result.set('_candidate_images', imgs, 2)
-        # it's possible that an amp article could appear in sections other than these
-        # TODO: allow any section, maybe use newspaper parser over the full html
+        # it's possible that an amp article could appear in sections
+        # other than these. ideally, should allow any elems, maybe use
+        # newspaper parser over the full html
         elems = self.soup.find_all('article') + self.soup.find_all('section')
         content = " ".join(map(str, elems)).strip()
         if content:
