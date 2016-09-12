@@ -1,4 +1,5 @@
 import re
+import codecs
 
 import lxml.html
 # pylint: disable=no-name-in-module
@@ -23,14 +24,22 @@ class FixedParser(Parser):
     def fromstring(cls, html):
         # next line shouldn't be necessary because
         # we will always sanitize_html before passing in
+        # which will always result in unicode
         # html = cls.get_unicode_html(html)
         if html.startswith('<?'):
             html = re.sub(r'^\<\?.*?\?\>', '', html, flags=re.DOTALL)
 
-        # lxml parser must have utf8, though the next line was causing
-        # issues when the html was already utf8
-        # html = codecs.encode(html, 'utf-8')
-        cls.doc = lxml.html.fromstring(html)
+        # lxml parser must have utf8.  We have unicode, though not
+        # necessarily utf8 - so if there's an issue with 'switching
+        # encoding' then we force utf8 encoding and try again
+        try:
+            cls.doc = lxml.html.fromstring(html)
+        # pylint: disable=no-member
+        except lxml.etree.XMLSyntaxError as error:
+            if 'switching encoding' not in str(error):
+                raise error
+            html = codecs.encode(html, 'utf-8')
+            cls.doc = lxml.html.fromstring(html)
         return cls.doc
 
 
