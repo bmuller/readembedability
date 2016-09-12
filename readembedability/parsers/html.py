@@ -121,7 +121,9 @@ class SmartElem:
         Given that this is an anchor ('a' elem), is it virtuous?
         """
         text = self.elem.get_text().lower().strip()
-        href = self.attrs.get('href')
+        href = self.attrs.get('href').strip()
+        if href == '#':
+            return False
 
         verbotten = ['sign up']
         if not text or any([v in text for v in verbotten]):
