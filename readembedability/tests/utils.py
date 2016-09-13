@@ -20,3 +20,6 @@ class FakeResponse:
     # pylint: disable=no-self-use
     def is_text(self):
         return False
+
+    def is_binary(self):
+        return False

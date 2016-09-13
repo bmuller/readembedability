@@ -63,8 +63,19 @@ class HTTPResponse:
 
         # pylint: disable=protected-access
         self.response._content = body
-        # use aiohttp to decode
-        self.body = await self.response.text()
+
+        if self.is_binary():
+            self.body = body
+        else:
+            # use aiohttp to decode
+            self.body = await self.response.text()
+
+    def is_binary(self):
+        """
+        Return true if this is a non-text response (image, pdf, etc)
+        """
+        nonbins = [self.is_html(), self.is_feed(), self.is_text()]
+        return not any(nonbins)
 
     def is_html(self):
         return self.content_type == "text/html"
