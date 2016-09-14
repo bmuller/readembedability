@@ -74,7 +74,13 @@ class HTTPResponse:
         """
         Return true if this is a non-text response (image, pdf, etc)
         """
-        nonbins = [self.is_html(), self.is_feed(), self.is_text()]
+        nonbins = [
+            self.is_html(),
+            self.is_feed(),
+            self.is_text(),
+            self.is_json(),
+            self.is_javascript()
+        ]
         return not any(nonbins)
 
     def is_html(self):
@@ -91,6 +97,14 @@ class HTTPResponse:
 
     def is_pdf(self):
         return self.content_type == "application/pdf"
+
+    def is_json(self):
+        return self.content_type == "application/json"
+
+    def is_javascript(self):
+        # first is obsolete, but these publishers...
+        jses = ["text/javascript", "application/javascript"]
+        return self.content_type in jses
 
     def to_json(self):
         return json.loads(self.body)

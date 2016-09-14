@@ -1,7 +1,7 @@
-from urllib.parse import urlparse, parse_qs, urlunparse, urlencode
+from urllib.parse import urlparse, parse_qsl, urlunparse, urlencode
 import re
 import datetime
-from collections import Counter
+from collections import Counter, OrderedDict
 
 from dateutil.parser import parse as dateutil_parse
 
@@ -15,7 +15,7 @@ class URL:
         if not url.startswith('http'):
             url = 'http://' + url
         self._parts = list(urlparse(url))
-        self._query = parse_qs(self._parts[4])
+        self._query = OrderedDict(parse_qsl(self._parts[4]))
 
     @property
     def basename(self):
@@ -56,10 +56,10 @@ class URL:
         return None
 
     def get_param(self, name, default=None):
-        return self._query.get(name, [default])[0]
+        return self._query.get(name, default)
 
     def set_param(self, name, value):
-        self._query[name] = [value]
+        self._query[name] = value
         return self
 
     def set_params(self, **kwargs):
@@ -71,10 +71,7 @@ class URL:
         return str(self).lower().startswith(prefix.lower())
 
     def __str__(self):
-        nquery = {}
-        for key, values in self._query.items():
-            nquery[key] = values[0]
-        self._parts[4] = urlencode(nquery)
+        self._parts[4] = urlencode(self._query)
         return urlunparse(self._parts)
 
 
