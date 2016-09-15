@@ -122,7 +122,8 @@ class SmartElem:
         """
         text = self.elem.get_text().lower().strip()
         href = self.attrs.get('href')
-        if not href or href.strip() == '#':
+        virttext = self._is_virtuous_text(text)
+        if not href or href.strip() == '#' or not virttext:
             return False
 
         verbotten = ['sign up']
@@ -135,8 +136,9 @@ class SmartElem:
             return False
         return True
 
-    def _is_virtuous_text(self):
-        text = str(self.elem).lower()
+    # pylint: disable=no-self-use
+    def _is_virtuous_text(self, text):
+        text = text.lower()
         verbotten = ['advertisement', 'photo by', 'continue reading']
         for verb in verbotten:
             if text.startswith(verb):
@@ -149,7 +151,7 @@ class SmartElem:
         """
         if self.is_tag() and self._is_virtuous_tag():
             return True
-        elif self.is_text() and self._is_virtuous_text():
+        elif self.is_text() and self._is_virtuous_text(str(self.elem)):
             return True
         return False
 

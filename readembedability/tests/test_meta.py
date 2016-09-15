@@ -1,7 +1,7 @@
 import unittest
 
 from readembedability.parsers.meta import AuthorParser
-from readembedability.parsers.base import ParseResult
+from readembedability.parsers.result import ParseResult
 from readembedability.tests.utils import FakeResponse, async_test
 from readembedability.tests.soupkitchen import T
 

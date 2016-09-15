@@ -76,19 +76,18 @@ class DatePublishedParser(BaseParser):
         attempts = [
             (None, None, {'itemprop': 'datePublished'}),
             ('meta', 'content', {'itemprop': 'datePublished'}),
-            ('meta', 'content', {'property': 'article:modified_time'}),
             ('meta', 'content', {'property': 'article:published_time'}),
             ('meta', 'content', {'name': 'PublishDate'}),
             ('meta', 'content', {'name': 'CreationDate'}),
             ('meta', 'content', {'name': 'date'}),
             ('time'),
-            ('meta', 'content', {'name': 'eomportal-lastUpdate'})
+            ('meta', 'content', {'name': 'eomportal-lastUpdate'}),
+            ('meta', 'content', {'property': 'article:modified_time'})
         ]
         return self.soup.coalesce_elem_value(attempts)
 
     async def enrich(self, result):
         if self.soup is None:
-            result.set('published_at', None)
             return result
 
         pat = self.get_standards()
@@ -101,7 +100,7 @@ class DatePublishedParser(BaseParser):
 
         # Don't set any published_at to be in the future
         if pat is not None and pat < datetime.now().replace(tzinfo=pat.tzinfo):
-            result.set('published_at', pat)
+            result.set('published_at', pat, 2, 'timespecificity')
         return result
 
 
@@ -152,7 +151,7 @@ class SocialParser(BaseParser):
         attrs = {'property': 'og:description', 'content': True}
         ogdesc = self.soup.find_all("meta", **attrs)
         if ogdesc:
-            result.set_if_longer('summary', ogdesc[0]['content'])
+            result.set('summary', ogdesc[0]['content'], 0, 'textlength')
         return result
 
 

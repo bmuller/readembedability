@@ -58,13 +58,13 @@ class NewspaperParser(BaseParser):
         article.set_html(sanitized)
         article.parse()
 
-        result.set_if_longer('title', article.title, 2)
+        result.set('title', article.title, 2, 'textlength')
         if len(article.meta_description) > 0:
-            result.set_if_longer('subtitle', article.meta_description, 2)
+            result.set('subtitle', article.meta_description, 2, 'textlength')
 
         if len(article.article_html) > 0:
             sanitized = sanitize_html(article.article_html)
-            result.set_if_longer('content', sanitized)
+            result.set('content', sanitized, 0, 'textlength')
         elif article.top_node is not None:
             sanitized = sanitize_html(tostring(article.top_node))
             result.set('content', sanitized, 2)

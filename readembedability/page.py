@@ -2,7 +2,7 @@ import logging
 
 from readembedability.io import get_page
 from readembedability.utils import URL
-from readembedability.parsers.base import ParseResult
+from readembedability.parsers.result import ParseResult
 from readembedability.parsers import assets
 from readembedability.parsers import oembed
 from readembedability.parsers import content

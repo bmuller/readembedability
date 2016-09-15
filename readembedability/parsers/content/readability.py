@@ -8,6 +8,6 @@ class ReadableLxmlParser(BaseParser):
     async def enrich(self, result):
         doc = Document(self.content, url=self.url)
         content = doc.summary(html_partial=True)
-        result.set_if_longer('content', sanitize_html(content))
-        result.set_if_longer('title', doc.short_title())
+        result.set('content', sanitize_html(content), 2, 'textquality')
+        result.set('title', doc.short_title(), 1, 'textlength')
         return result
