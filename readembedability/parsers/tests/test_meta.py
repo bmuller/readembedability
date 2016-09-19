@@ -7,10 +7,6 @@ from readembedability.tests.soupkitchen import T
 
 
 class AuthorParserTest(unittest.TestCase):
-    def test_fix_name(self):
-        aparser = AuthorParser(FakeResponse(""))
-        self.assertEqual(aparser.fix_name("SNAKE PLISSKEN"), "Snake Plissken")
-
     @async_test
     async def test_extract_byline(self):
         link = T.a("by ", T.span("SNAKE PLISSKEN"), href='#')

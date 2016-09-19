@@ -27,6 +27,13 @@ class ParseResult:
     def set_parser_name(self, name):
         self.current_parser = name
 
+    def set_if(self, prop, value, **kwargs):
+        """
+        Just like set, but only set 'if value'.  Lazy!
+        """
+        if value:
+            return self.set(prop, value, **kwargs)
+
     def set(self, prop, value, confidence=0, tiebreaker=None):
         """
         Set the prop if confidence is higher than what's already set,

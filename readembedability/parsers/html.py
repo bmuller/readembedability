@@ -185,13 +185,6 @@ class SmartHTMLDocument:
     def __init__(self, html):
         self.soup = BeautifulSoup(html, 'lxml')
 
-    def type_guess(self):
-        guess = None
-        ogtype = self.find_all("meta", property="og:type", content=True)
-        if len(ogtype) > 0:
-            guess = ogtype[0]['content']
-        return guess
-
     @property
     def body(self):
         return self.soup.html.body

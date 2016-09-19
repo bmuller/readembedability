@@ -5,8 +5,7 @@ from readembedability.parsers.base import BaseParser
 
 class OEmbedParser(BaseParser):
     async def enrich(self, result):
-        # Don't oembed articles
-        if self.soup is None or self.soup.type_guess() == 'article':
+        if self.soup is None:
             return result
 
         oembed = await get_embed_from_content(self.response.body)
@@ -16,7 +15,13 @@ class OEmbedParser(BaseParser):
         if 'author_name' in oembed:
             result.set('authors', [oembed['author_name']], 3)
 
-        if 'html' in oembed:
+        result.set_if('title', oembed.get('title'))
+        result.set_if('primary_image', oembed.get('thumbnail_url'))
+
+        # Don't trust oembed articles because they're probably crap, like
+        # NYTimes oembeded articles that are just iframes
+        isarticle = oembed.get('asset_type', '').lower() != 'article'
+        if 'html' in oembed and isarticle:
             # if this is a wordpress embed, then let's not call it
             # embedded and use the actual content
             if "Embedded WordPress Post" not in oembed['html']:
@@ -25,9 +30,6 @@ class OEmbedParser(BaseParser):
                 lock = ">" in oembed['html'] and "<" in oembed['html']
                 conf = 3 if lock else 2
                 result.set('content', oembed['html'], conf)
-            result.set('title', oembed.get('title', result.get('title')))
-            if oembed.get('thumbnail_url', None) is not None:
-                result.set('primary_image', oembed.get('thumbnail_url'))
 
         elif 'url' in oembed and oembed['type'] == 'photo':
             result.set('embed', True)

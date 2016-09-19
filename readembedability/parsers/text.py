@@ -1,6 +1,6 @@
 from collections import Counter
 from collections import deque
-from operator import itemgetter
+from operator import itemgetter, methodcaller
 import heapq
 import re
 from pkg_resources import resource_string, resource_filename
@@ -194,12 +194,37 @@ class SummarizingParser(BaseParser):
             result.set('_text', self.soup.all_text())
 
         sumzer = Summarizer(result.get('_text'), result.get('title'))
-        summary = sumzer.summary()
-        if len(summary) > 0:
-            result.set('summary', summary, 3)
         result.set('wordcount', len(sumzer.words))
-
-        existing = map(sumzer.common_cap, result.get('keywords'))
-        keywords = longest_unique(list(existing) + sumzer.keywords())
-        result.set('keywords', keywords)
+        # only set props if there are at least 2 sentances
+        if len(sumzer.sentences) > 2:
+            summary = sumzer.summary()
+            if len(summary) > 0:
+                result.set('summary', summary, 3)
+            existing = map(sumzer.common_cap, result.get('keywords'))
+            keywords = longest_unique(list(existing) + sumzer.keywords())
+            result.set('keywords', keywords)
         return result
+
+
+def parse_authors(value):
+    """
+    Return an array of author names.  Expect a string.
+    """
+    value = value.strip()
+    if value.lower().startswith('by'):
+        value = value[3:].strip()
+
+    if not value:
+        return []
+
+    value = value.replace(' AND ', ' and ')
+    return list(map(fix_name, value.split(' and ')))
+
+
+def fix_name(name):
+    name = name.strip()
+    # if all upcase, then just capitalize
+    if name in [name.upper(), name.lower()]:
+        parts = map(methodcaller('capitalize'), name.split(' '))
+        name = " ".join(parts)
+    return name

@@ -16,18 +16,16 @@ setup(
        'lxml==3.6.2',
        'cssselect==0.9.2',
        'readability-lxml==0.6.2',
-       'robostrippy==1.1',
+       'robostrippy==1.2',
        'pyOpenSSL>=16.0.0',
        'beautifulsoup4==4.5.1',
        'nltk==3.2.1',
-       'fastimage==1.1.2',
+       'fastimage==1.2.2',
        'pytidylib==0.2.4',
        'debmeo==2.1.1',
        'newspaper3k==0.1.7',
        'python-dateutil==2.5.3',
-       'aiohttp==1.0.0a0',
-       'cchardet==1.0.0',
-       'aiodns==1.1.1'
-    ],
-    dependency_links = ['git+https://github.com/KeepSafe/aiohttp.git@94d08ac#egg=aiohttp-1.0.0a0']
+       'aiohttp==1.0.1',
+       'cchardet==1.0.0'
+    ]
 )

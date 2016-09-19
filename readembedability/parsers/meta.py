@@ -1,8 +1,8 @@
 import json
-from operator import methodcaller
 from datetime import datetime
 import logging
 
+from readembedability.parsers.text import parse_authors
 from readembedability.parsers.html import sanitize_html, SmartHTMLDocument
 from readembedability.utils import unique, longest, parse_date, URL, flatten
 from readembedability.parsers.base import BaseParser
@@ -11,15 +11,6 @@ LOG = logging.getLogger(__name__)
 
 
 class AuthorParser(BaseParser):
-    # pylint: disable=no-self-use
-    def fix_name(self, author):
-        author = author.strip()
-        # if all upcase, then just capitalize
-        if author == author.upper():
-            parts = map(methodcaller('capitalize'), author.split(' '))
-            author = " ".join(parts)
-        return author
-
     # pylint: disable=no-self-use
     def has_byline_prefix(self, prefix):
         prefix = prefix.lower()
@@ -48,8 +39,7 @@ class AuthorParser(BaseParser):
         # try standards based approach
         author = self.get_standards()
         if author is not None:
-            authors = map(self.fix_name, author.split(' and '))
-            result.set('authors', list(authors), 3)
+            result.set_if('authors', parse_authors(author), confidence=3)
             return result
 
         for txt in self.soup.text_chunks():
@@ -66,8 +56,7 @@ class AuthorParser(BaseParser):
                     author = name
 
         if author:
-            authors = map(self.fix_name, author.split(' and '))
-            result.set('authors', list(authors))
+            result.set_if('authors', parse_authors(author))
         return result
 
 
