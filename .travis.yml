@@ -2,6 +2,7 @@ sudo: required
 dist: trusty
 language: python
 before_install:
+  - sudo apt-get remove libtidy-0.99-0 tidy
   - wget http://binaries.html-tidy.org/binaries/tidy-5.2.0/tidy-5.2.0-64bit.deb
   - sudo dpkg -i tidy-5.2.0-64bit.deb
 python:
