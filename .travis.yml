@@ -1,5 +1,5 @@
+sudo: required
 language: python
-sudo: false
 before_install:
   - wget http://binaries.html-tidy.org/binaries/tidy-5.2.0/tidy-5.2.0-64bit.deb
   - sudo dpkg -i tidy-5.2.0-64bit.deb
