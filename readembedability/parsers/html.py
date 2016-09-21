@@ -1,8 +1,18 @@
+import re
+
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString, Tag, Comment, ProcessingInstruction
 from bs4.element import Declaration, CData, Doctype
 
 from tidylib import tidy_fragment
+if 'article' not in tidy_fragment('<article>hi</article>')[0]:
+    # We need this otherwise our tidy cleanup will product weird results when
+    # dealing with HTML5
+    raise ImportError(
+        "You have pytidylib installed, but your version of libtidy is out"
+        " of date. Download from www.html-tidy.org for HTML5 support."
+    )
+
 
 CLEAN_ELEMS = [
     "a",
@@ -53,7 +63,15 @@ CLEAN_ELEM_ATTRS = {
 }
 
 
+def tidy_html(html):
+    doc, _ = tidy_fragment(html, options={'indent': 0})
+    return doc
+
+
 def sanitize_html(html):
+    # remove unknown silly elements, like <cnt> in
+    # washingtonexaminer articles
+    html = tidy_html(html)
     soup = BeautifulSoup(html, 'lxml')
     if soup.html.body is None:
         return ""
@@ -66,8 +84,7 @@ def sanitize_html(html):
             smart.clean()
 
     html = "".join([str(c) for c in soup.html.body.children])
-    doc, _ = tidy_fragment(html, options={'indent': 0})
-    return doc
+    return tidy_html(html)
 
 
 class SmartElem:
@@ -101,8 +118,11 @@ class SmartElem:
             result = self._is_virtuous_anchor()
         if self.elem.name == 'img':
             result = self._is_virtuous_image()
+
         # the class attribute is a list
-        if 'caption' in " ".join(self.attrs.get('class', [])):
+        cstring = " ".join(self.attrs.get('class', []))
+        verbotten = ['caption', 'newsletter', 'signup']
+        if any([(verb in cstring) for verb in verbotten]):
             result = False
         return result
 
@@ -139,7 +159,13 @@ class SmartElem:
     # pylint: disable=no-self-use
     def _is_virtuous_text(self, text):
         text = text.lower()
-        verbotten = ['advertisement', 'photo by', 'continue reading']
+        verbotten = [
+            'advertisement',
+            'photo by',
+            'continue reading',
+            'read more',
+            'subscribe'
+        ]
         for verb in verbotten:
             if text.startswith(verb):
                 return False
@@ -188,6 +214,19 @@ class SmartHTMLDocument:
     @property
     def body(self):
         return self.soup.html.body
+
+    def find_all_loose(self, *args, **kwargs):
+        """
+        Make all string kwarg values regexes.  This is useful in cases where
+        you want itemprop='articleBody text' to be matched by 'articleBody'
+
+        Note that re.compile does cache, but only up to re._MAXCACHE regexes
+        """
+        loosekw = {}
+        for key, value in kwargs.items():
+            value = re.compile(value) if isinstance(value, str) else value
+            loosekw[key] = value
+        return self.find_all(*args, **loosekw)
 
     def find_all(self, *args, **kwargs):
         return self.soup.find_all(*args, attrs=kwargs)

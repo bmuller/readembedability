@@ -104,8 +104,8 @@ class StandardsParser(BaseParser):
         if content is not None:
             content = sanitize_html(content)
 
-        parts = self.soup.find_all(itemprop='articleBody')
-        if len(parts) > 0:
+        parts = self.soup.find_all_loose(itemprop='articleBody')
+        if parts:
             content = sanitize_html("".join(map(str, parts)))
 
         if content is not None and len(content.strip()) > 5:
@@ -113,7 +113,7 @@ class StandardsParser(BaseParser):
             result.set('_text', SmartHTMLDocument(content).all_text(), 3)
 
         keywords = result.get('keywords')
-        for genre in self.soup.find_all(itemprop="genre", content=True):
+        for genre in self.soup.find_all_loose(itemprop="genre", content=True):
             keywords.append(genre['content'].strip())
 
         tags = self.soup.find_all('meta', name='sailthru.tags', content=True)
