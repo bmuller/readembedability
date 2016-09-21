@@ -4,8 +4,9 @@ from bs4 import BeautifulSoup
 from bs4.element import NavigableString, Tag, Comment, ProcessingInstruction
 from bs4.element import Declaration, CData, Doctype
 
-from tidylib import tidy_fragment
-if 'article' not in tidy_fragment('<article>hi</article>')[0]:
+import tidylib
+tidylib.LIB_NAMES = ['libtidy.so.5'] + tidylib.LIB_NAMES
+if 'article' not in tidylib.tidy_fragment('<article>hi</article>')[0]:
     # We need this otherwise our tidy cleanup will product weird results when
     # dealing with HTML5
     raise ImportError(
@@ -64,7 +65,7 @@ CLEAN_ELEM_ATTRS = {
 
 
 def tidy_html(html):
-    doc, _ = tidy_fragment(html, options={'indent': 0})
+    doc, _ = tidylib.tidy_fragment(html, options={'indent': 0})
     return doc
 
 
@@ -73,7 +74,7 @@ def sanitize_html(html):
     # washingtonexaminer articles
     html = tidy_html(html)
     soup = BeautifulSoup(html, 'lxml')
-    if soup.html.body is None:
+    if not soup.html or not soup.html.body:
         return ""
 
     for elem in list(soup.html.body.descendants):
