@@ -50,9 +50,14 @@ class FixedArticleConfig(ArticleConfiguration):
 
 class NewspaperParser(BaseParser):
     async def enrich(self, result):
+        # none of the following lines will work if we couldn't make soup
+        if not self.soup:
+            return result
+
         sanitized = sanitize_html(self.response.body)
         if not sanitized:
             return result
+
         article = Article(self.url, config=FixedArticleConfig())
         article.config.fetch_images = False
         article.set_html(sanitized)
