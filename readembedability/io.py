@@ -113,7 +113,7 @@ class HTTPResponse:
         return self.body
 
 
-async def get_page(url, headers=None, timeout=10, mobile=False):
+async def get_page(url, headers=None, timeout=0.1, mobile=False):
     headers = headers or {}
     if 'User-Agent' not in headers:
         usera = "readembedability/%s" % __version__
@@ -127,11 +127,13 @@ async def get_page(url, headers=None, timeout=10, mobile=False):
 
     LOG.info("Attempting to download %s", url)
     try:
-        with aiohttp.Timeout(timeout):
-            async with aiohttp.ClientSession(headers=headers) as session:
-                async with session.get(surl) as resp:
-                    result = HTTPResponse(resp)
-                    await result.process()
+        async with aiohttp.ClientSession(headers=headers) as session:
+            async with session.get(surl, timeout=timeout) as resp:
+                result = HTTPResponse(resp)
+                await result.process()
+    except asyncio.CancelledError as error:
+        LOG.error("Client error fetching %s: %s", url, error)
+        result = None
     except aiohttp.errors.ClientOSError as error:
         LOG.error("Error fetching %s: %s", url, error)
         result = None

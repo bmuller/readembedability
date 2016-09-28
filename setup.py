@@ -25,7 +25,7 @@ setup(
        'debmeo==2.1.1',
        'newspaper3k==0.1.7',
        'python-dateutil==2.5.3',
-       'aiohttp==1.0.1',
+       'aiohttp==1.0.2',
        'cchardet==1.0.0'
     ]
 )
