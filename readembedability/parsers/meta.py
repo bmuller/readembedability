@@ -150,13 +150,17 @@ class LDJSONParser(BaseParser):
             return result
 
         for elem in self.soup.find_all('script', type="application/ld+json"):
-            obj = None
+            datas = []
             try:
-                obj = json.loads(elem.get_text().strip())
+                datas = json.loads(elem.get_text().strip())
+                # datas can be a list - if it's not, make it one
+                if not isinstance(datas, list):
+                    datas = [datas]
             except json.decoder.JSONDecodeError as err:
                 LOG.error(err)
-            if obj and obj.get('@type') == 'NewsArticle':
-                result = self.eat_news_article(obj, result)
+            for obj in datas:
+                if obj.get('@type') == 'NewsArticle':
+                    result = self.eat_news_article(obj, result)
         return result
 
     # pylint: disable=no-self-use

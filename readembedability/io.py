@@ -113,7 +113,7 @@ class HTTPResponse:
         return self.body
 
 
-async def get_page(url, headers=None, timeout=0.1, mobile=False):
+async def get_page(url, headers=None, timeout=10, mobile=False):
     headers = headers or {}
     if 'User-Agent' not in headers:
         usera = "readembedability/%s" % __version__
