@@ -33,7 +33,7 @@ class ResponseTooLargeError(Exception):
 
 
 class HTTPResponse:
-    def __init__(self, response, maxsize=3000000):
+    def __init__(self, response, maxsize=5000000):
         """
         Param maxsize has a 3mb cutoff by default.
         """
@@ -127,7 +127,11 @@ async def get_page(url, headers=None, timeout=10, mobile=False):
 
     LOG.info("Attempting to download %s", url)
     try:
-        async with aiohttp.ClientSession(headers=headers) as session:
+        kwargs = {
+            'connector': aiohttp.TCPConnector(verify_ssl=False),
+            'headers': headers
+        }
+        async with aiohttp.ClientSession(**kwargs) as session:
             async with session.get(surl, timeout=timeout) as resp:
                 result = HTTPResponse(resp)
                 await result.process()
