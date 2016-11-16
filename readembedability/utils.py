@@ -74,6 +74,9 @@ class URL:
         self._parts[4] = urlencode(self._query)
         return urlunparse(self._parts)
 
+    def __repr__(self):
+        return "URL(%s)" % str(self)
+
 
 def unique(iterable):
     """

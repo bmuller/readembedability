@@ -13,7 +13,7 @@ setup(
     packages=find_packages(),
     package_data={'readembedability': ['data/*.*']},
     install_requires = [
-       'lxml==3.6.2',
+       'lxml==3.6.4',
        'cssselect==0.9.2',
        'readability-lxml==0.6.2',
        'robostrippy==1.2',
@@ -25,7 +25,7 @@ setup(
        'debmeo==2.1.1',
        'newspaper3k==0.1.7',
        'python-dateutil==2.5.3',
-       'aiohttp==1.0.2',
-       'cchardet==1.0.0'
+       'aiohttp==1.1.5',
+       'cchardet==1.1.1'
     ]
 )
