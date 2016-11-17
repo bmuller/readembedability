@@ -12,7 +12,8 @@ class AMPParser(BaseParser):
         if not links:
             return result
 
-        response = await get_page(links[0]['href'], mobile=True)
+        href = self.absoluteify(links[0]['href'])
+        response = await get_page(href, mobile=True)
         if not response:
             return result
         return AMPParser(response).amp_enrich(result)
