@@ -22,7 +22,6 @@ setup(
        'nltk==3.2.1',
        'fastimage==1.2.2',
        'pytidylib==0.3.2',
-       'debmeo==2.1.1',
        'newspaper3k==0.1.9',
        'python-dateutil==2.5.3',
        'aiohttp==1.2.0'
