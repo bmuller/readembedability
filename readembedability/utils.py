@@ -63,6 +63,7 @@ class URL:
         return self
 
     def set_params(self, **kwargs):
+        # pylint: disable=not-an-iterable
         for key, value in kwargs.items():
             self.set_param(key, value)
         return self
@@ -142,6 +143,7 @@ def flatten(maybelist):
     Unlike itertools.chain.from_iterable, this function only flattens
     lists, not all iterables.
     """
+    # pylint: disable=not-an-iterable
     if not isinstance(maybelist, list):
         yield maybelist
         return

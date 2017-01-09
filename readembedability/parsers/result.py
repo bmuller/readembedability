@@ -89,6 +89,7 @@ class ParseResult:
         return default
 
     def to_dict(self):
+        # pylint: disable=not-an-iterable
         keys = [k for k in self.props.keys() if not k.startswith('_')]
         return {k: self.get(k) for k in keys}
 
@@ -96,6 +97,7 @@ class ParseResult:
         """
         For debugging.
         """
+        # pylint: disable=not-an-iterable
         parts = []
         for k, vconf in self.props.items():
             value, confidence = vconf

@@ -26,6 +26,7 @@ class FixedParser(Parser):
         # we will always sanitize_html before passing in
         # which will always result in unicode
         # html = cls.get_unicode_html(html)
+        # pylint: disable=no-member
         if html.startswith('<?'):
             html = re.sub(r'^\<\?.*?\?\>', '', html, flags=re.DOTALL)
 

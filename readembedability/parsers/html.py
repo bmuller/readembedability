@@ -5,15 +5,6 @@ from bs4.element import NavigableString, Tag, Comment, ProcessingInstruction
 from bs4.element import Declaration, CData, Doctype
 
 import tidylib
-tidylib.LIB_NAMES = ['libtidy.so.5'] + tidylib.LIB_NAMES
-if 'article' not in tidylib.tidy_fragment('<article>hi</article>')[0]:
-    # We need this otherwise our tidy cleanup will product weird results when
-    # dealing with HTML5
-    raise ImportError(
-        "You have pytidylib installed, but your version of libtidy is out"
-        " of date. Download from www.html-tidy.org for HTML5 support."
-    )
-
 
 CLEAN_ELEMS = [
     "a",
@@ -223,6 +214,7 @@ class SmartHTMLDocument:
 
         Note that re.compile does cache, but only up to re._MAXCACHE regexes
         """
+        # pylint: disable=not-an-iterable
         loosekw = {}
         for key, value in kwargs.items():
             value = re.compile(value) if isinstance(value, str) else value

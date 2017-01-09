@@ -23,6 +23,7 @@ class Tag(object):
         return self
 
     def __str__(self):
+        # pylint: disable=not-an-iterable
         sattrs = " ".join(["%s=\"%s\"" % kv for kv in self.attrs.items()])
         sattrs = " " + sattrs if len(self.attrs) > 0 else ""
         if len(self.kids) == 0:

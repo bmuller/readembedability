@@ -12,6 +12,7 @@ class CustomParser(BaseParser):
 
     @classmethod
     def register(cls, regex, fclass):
+        # pylint: disable=no-member
         regex = re.compile(regex, re.IGNORECASE)
         cls.PARSERS.append((regex, fclass))
 
