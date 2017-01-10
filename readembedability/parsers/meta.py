@@ -71,7 +71,9 @@ class DatePublishedParser(BaseParser):
             ('meta', 'content', {'name': 'date'}),
             ('time'),
             ('meta', 'content', {'name': 'eomportal-lastUpdate'}),
-            ('meta', 'content', {'property': 'article:modified_time'})
+            ('meta', 'content', {'property': 'article:published_time'}),
+            ('meta', 'content', {'property': 'article:modified_time'}),
+            ('meta', 'content', {'property': 'og:updated_time'})
         ]
         return self.soup.coalesce_elem_value(attempts)
 

@@ -112,6 +112,9 @@ class HTTPResponse:
     def __str__(self):
         return self.body
 
+    def empty_body(self):
+        return (not self.body) or self.body.strip() == ""
+
 
 async def get_page(url, headers=None, timeout=10, mobile=False):
     headers = headers or {}

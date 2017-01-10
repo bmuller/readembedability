@@ -234,7 +234,7 @@ class SmartHTMLDocument:
                 txt = elem.get_text().strip()
                 if txt != "":
                     return txt
-            elif elem[attr] is not None and len(elem[attr].strip()) > 0:
+            elif elem.has_attr(attr) and len(elem[attr].strip()) > 0:
                 return elem[attr].strip()
         return None
 
@@ -251,7 +251,7 @@ class SmartHTMLDocument:
             if len(attempt) == 2:
                 kwargs['attr'] = attempt.pop()
             result = self.get_elem_value(attempt[0], **kwargs)
-            if result is not None:
+            if result:
                 return result
         return None
 
