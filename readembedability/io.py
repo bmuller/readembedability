@@ -67,8 +67,10 @@ class HTTPResponse:
         if self.is_binary():
             self.body = body
         else:
-            # use aiohttp to decode
-            self.body = await self.response.text()
+            # Until https://github.com/KeepSafe/aiohttp/pull/1542 is accepted
+            # and released...
+            encoding = self.response._get_encoding()
+            self.body = self.response._content.decode(encoding, 'ignore')
 
     def is_binary(self):
         """
