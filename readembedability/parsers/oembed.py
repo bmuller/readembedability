@@ -56,7 +56,10 @@ def _parse_xml(xml):
 
 def _parse_json(jsonstr):
     try:
-        return json.loads(jsonstr)
+        # per the spec at oembed.com this must be a dict
+        # some bad websites return lists of gobbligook
+        result = json.loads(jsonstr)
+        return result if isinstance(result, dict) else None
     except ValueError:
         return None
 
