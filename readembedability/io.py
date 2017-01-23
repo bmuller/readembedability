@@ -33,9 +33,10 @@ class ResponseTooLargeError(Exception):
 
 
 class HTTPResponse:
-    def __init__(self, response, maxsize=5000000):
+    def __init__(self, response, maxsize):
         """
-        Param maxsize has a 3mb cutoff by default.
+        Param maxsize is the largest size of a URL to download before
+        raising an exception of ResponseTooLargeError
         """
         self.response = response
         self.maxsize = maxsize
@@ -118,7 +119,11 @@ class HTTPResponse:
         return (not self.body) or self.body.strip() == ""
 
 
-async def get_page(url, headers=None, timeout=10, mobile=False):
+async def get_page(url, headers=None, timeout=10, mobile=False,
+                   maxsize=5000000):
+    """
+    Param maxsize has a 5mb cutoff by default.
+    """
     headers = headers or {}
     if 'User-Agent' not in headers:
         usera = "readembedability/%s" % __version__
@@ -138,8 +143,12 @@ async def get_page(url, headers=None, timeout=10, mobile=False):
         }
         async with aiohttp.ClientSession(**kwargs) as session:
             async with session.get(surl, timeout=timeout) as resp:
-                result = HTTPResponse(resp)
+                result = HTTPResponse(resp, maxsize)
                 await result.process()
+    except ResponseTooLargeError:
+        msg = "Server responded with more than %i allowed bytes for %s"
+        LOG.error(msg, maxsize, url)
+        result = None
     except asyncio.CancelledError as error:
         LOG.error("Client error fetching %s: %s", url, error)
         result = None
