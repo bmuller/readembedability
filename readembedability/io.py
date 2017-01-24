@@ -149,6 +149,9 @@ async def get_page(url, headers=None, timeout=10, mobile=False,
         msg = "Server responded with more than %i allowed bytes for %s"
         LOG.error(msg, maxsize, url)
         result = None
+    except aiohttp.ClientResponseError as error:
+        LOG.error("Connection error while fetching %s: %s", url, error)
+        result = None
     except asyncio.CancelledError as error:
         LOG.error("Client error fetching %s: %s", url, error)
         result = None
