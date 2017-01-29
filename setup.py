@@ -14,16 +14,16 @@ setup(
     package_data={'readembedability': ['data/*.*']},
     install_requires = [
        'lxml==3.6.4',
-       'cssselect==0.9.2',
+       'cssselect==1.0.1',
        'readability-lxml==0.6.2',
-       'robostrippy==1.2',
-       'pyOpenSSL>=16.0.0',
+       'robostrippy==1.3',
+       'pyOpenSSL==16.2.0',
        'beautifulsoup4==4.5.1',
        'nltk==3.2.1',
        'fastimage==1.2.2',
        'pytidylib==0.3.2',
        'newspaper3k==0.1.9',
-       'python-dateutil==2.5.3',
+       'python-dateutil==2.6.0',
        'aiohttp==1.2.0'
     ]
 )
