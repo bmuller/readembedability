@@ -158,6 +158,9 @@ async def get_page(url, headers=None, timeout=10, mobile=False,
     except aiohttp.errors.ClientOSError as error:
         LOG.error("Error fetching %s: %s", url, error)
         result = None
+    except aiohttp.errors.HttpProcessingError as error:
+        LOG.error("Bad server response for %s: %s", url, error)
+        result = None
     except asyncio.TimeoutError:
         LOG.error("Timeout reached for %s", url)
         result = None
