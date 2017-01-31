@@ -155,9 +155,12 @@ class LDJSONParser(BaseParser):
             datas = []
             try:
                 datas = json.loads(elem.get_text().strip())
-                # datas can be a list - if it's not, make it one
-                if not isinstance(datas, list):
+                # if it's a dict, put it in a list, which most are
+                if isinstance(datas, dict):
                     datas = [datas]
+                # if it's not a list at this point, it's probably junk
+                if not isinstance(datas, list):
+                    datas = []
             except json.decoder.JSONDecodeError as err:
                 LOG.error(err)
             for obj in datas:
