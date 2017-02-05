@@ -1,5 +1,6 @@
 import json
 from bs4 import BeautifulSoup
+from robostrippy.utils import absolute_url
 
 from readembedability.parsers.base import BaseParser
 from readembedability.io import get_page
@@ -10,7 +11,7 @@ class OEmbedParser(BaseParser):
         if self.soup is None:
             return result
 
-        oembed = await get_embed_from_content(self.response.body)
+        oembed = await get_embed_from_content(self.response)
         if oembed is None:
             return result
 
@@ -64,7 +65,8 @@ def _parse_json(jsonstr):
         return None
 
 
-async def get_embed_from_content(page):
+async def get_embed_from_content(response):
+    page = response.body
     if page is None or len(page) < 10:
         return None
     soup = BeautifulSoup(page, "html.parser")
@@ -76,5 +78,6 @@ async def get_embed_from_content(page):
         parser = _parse_xml
     else:
         return None
-    page = await get_page(link['href'])
+    url = absolute_url(response.url, link['href'])
+    page = await get_page(url)
     return parser(page.body) if page else None
