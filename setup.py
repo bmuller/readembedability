@@ -20,7 +20,7 @@ setup(
        'pyOpenSSL==16.2.0',
        'beautifulsoup4==4.5.1',
        'nltk==3.2.1',
-       'fastimage==1.2.2',
+       'fastimage==1.2.3',
        'pytidylib==0.3.2',
        'newspaper3k==0.1.9',
        'python-dateutil==2.6.0',
