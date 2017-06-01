@@ -41,7 +41,7 @@ class HTTPResponse:
         self.response = response
         self.maxsize = maxsize
         self.status = response.status
-        self.url = response.url
+        self.url = str(response.url)
         self.headers = {}
         self.body = None
         for key, value in response.raw_headers:
@@ -149,17 +149,11 @@ async def get_page(url, headers=None, timeout=10, mobile=False,
         msg = "Server responded with more than %i allowed bytes for %s"
         LOG.error(msg, maxsize, url)
         result = None
-    except aiohttp.ClientResponseError as error:
+    except aiohttp.ClientError as error:
         LOG.error("Connection error while fetching %s: %s", url, error)
         result = None
     except asyncio.CancelledError as error:
         LOG.error("Client error fetching %s: %s", url, error)
-        result = None
-    except aiohttp.errors.ClientOSError as error:
-        LOG.error("Error fetching %s: %s", url, error)
-        result = None
-    except aiohttp.errors.HttpProcessingError as error:
-        LOG.error("Bad server response for %s: %s", url, error)
         result = None
     except asyncio.TimeoutError:
         LOG.error("Timeout reached for %s", url)

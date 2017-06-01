@@ -10,7 +10,7 @@ class Tag(object):
     def __call__(self, *kids, **attrs):
         kids = list(kids)
         self.attrs = attrs
-        if len(kids) > 0 and isinstance(kids[-1], dict):
+        if kids and isinstance(kids[-1], dict):
             self.attrs.update(kids.pop())
 
         for kid in kids:
@@ -25,8 +25,8 @@ class Tag(object):
     def __str__(self):
         # pylint: disable=not-an-iterable
         sattrs = " ".join(["%s=\"%s\"" % kv for kv in self.attrs.items()])
-        sattrs = " " + sattrs if len(self.attrs) > 0 else ""
-        if len(self.kids) == 0:
+        sattrs = " " + sattrs if self.attrs else ""
+        if not self.kids:
             return "<%s%s/>" % (self.name, sattrs)
         result = "<%s%s>" % (self.name, sattrs)
         result += "".join(map(str, self.kids))

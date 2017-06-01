@@ -65,10 +65,10 @@ class NewspaperParser(BaseParser):
         article.parse()
 
         result.set('title', article.title, 2, 'textlength')
-        if len(article.meta_description) > 0:
+        if article.meta_description:
             result.set('subtitle', article.meta_description, 2, 'textlength')
 
-        if len(article.article_html) > 0:
+        if article.article_html:
             sanitized = sanitize_html(article.article_html)
             result.set('content', sanitized, 0, 'textlength')
         elif article.top_node is not None:
@@ -77,7 +77,7 @@ class NewspaperParser(BaseParser):
 
         if article.authors:
             result.set('authors', article.authors, 2)
-        if article.publish_date and len(str(article.publish_date)) > 0:
+        if article.publish_date and str(article.publish_date):
             result.set('published_at', article.publish_date, 2)
         result.add('keywords', list(article.keywords))
         result.add('keywords', list(article.tags))
@@ -94,7 +94,7 @@ class NewspaperParser(BaseParser):
             if Summarizer.has_sentence(paragraph):
                 text += " " + paragraph
 
-        if len(text) > 0:
+        if text:
             result.set('_text', text, 2)
 
         return result

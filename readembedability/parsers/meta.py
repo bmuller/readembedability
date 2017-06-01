@@ -44,7 +44,7 @@ class AuthorParser(BaseParser):
 
         for txt in self.soup.text_chunks():
             parts = [s for s in txt.split(' ') if s != ""]
-            if len(parts) == 0:
+            if not parts:
                 return result
             # overlen is the max length + 1 for an author string
             overlen = 8 + (txt.lower().count(' and ') * 8)

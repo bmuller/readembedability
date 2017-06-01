@@ -111,7 +111,7 @@ class Summarizer:
         """
         top = heapq.nlargest(max_sentence_count, self.sentences)
         sentences = [s[1] for s in sorted(top, key=itemgetter(2))]
-        if len(sentences) == 0:
+        if not sentences:
             return ""
         result = sentences[0]
         for sentence in sentences[1:]:
@@ -125,7 +125,7 @@ class Summarizer:
         self.words = Summarizer.get_words(self.text)
         self.title_words = set(Summarizer.get_words(self.title).keys())
         self.boosted = Counter()
-        if len(self.words) == 0:
+        if not self.words:
             return
 
         # now boost words based on words in title
@@ -180,7 +180,7 @@ class Summarizer:
             return True
 
         # or one word that ends in a period
-        if len(text) > 0 and text[-1] in '?!:;.':
+        if text and text[-1] in '?!:;.':
             return True
 
         return False
@@ -198,7 +198,7 @@ class SummarizingParser(BaseParser):
         # only set props if there are at least 2 sentances
         if len(sumzer.sentences) > 2:
             summary = sumzer.summary()
-            if len(summary) > 0:
+            if summary:
                 result.set('summary', summary, 3)
             existing = map(sumzer.common_cap, result.get('keywords'))
             keywords = longest_unique(list(existing) + sumzer.keywords())

@@ -18,7 +18,7 @@ class LastDitchParser(BaseParser):
             if txt.string is not None:
                 parts.append(txt.string)
         html = " ".join(parts).strip()
-        if len(html) == 0:
+        if not html:
             html = self.soup.all_text()
 
         try:
@@ -71,7 +71,7 @@ class FinalContentPass(BaseParser):
             title = title.lower().strip()
             tnodes = self.cbs.get_text_nodes()
             # if first text node is title, remove it
-            if len(tnodes) > 0 and tnodes[0].lower().strip() == title:
+            if tnodes and tnodes[0].lower().strip() == title:
                 node = tnodes[0]
                 content = SmartElem(node.parent).all_text().lower()
                 while node.parent is not None and content == title:

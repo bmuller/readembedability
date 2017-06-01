@@ -234,7 +234,7 @@ class SmartHTMLDocument:
                 txt = elem.get_text().strip()
                 if txt != "":
                     return txt
-            elif elem.has_attr(attr) and len(elem[attr].strip()) > 0:
+            elif elem.has_attr(attr) and elem[attr].strip():
                 return elem[attr].strip()
         return None
 

@@ -89,7 +89,7 @@ class ParseResult:
         return default
 
     def to_dict(self):
-        # pylint: disable=not-an-iterable
+        # pylint: disable=not-an-iterable,consider-iterating-dictionary
         keys = [k for k in self.props.keys() if not k.startswith('_')]
         return {k: self.get(k) for k in keys}
 
