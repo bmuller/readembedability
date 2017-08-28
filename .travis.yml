@@ -8,5 +8,5 @@ before_install:
 python:
   - "3.5"
   - "3.6"
-install: pip install . pep8 pylint git+git://github.com/PyCQA/astroid
+install: pip install . pep8 pylint
 script: make test
