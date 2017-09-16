@@ -64,7 +64,8 @@ class NewspaperParser(BaseParser):
         article.set_html(sanitized)
         article.parse()
 
-        result.set_if('title', article.title.strip(), confidence=2, tiebreaker='textlength')
+        result.set_if('title', article.title.strip(),
+                      confidence=2, tiebreaker='textlength')
         if article.meta_description:
             result.set('subtitle', article.meta_description, 2, 'textlength')
 
