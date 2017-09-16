@@ -10,7 +10,12 @@ class LastDitchParser(BaseParser):
     If we've gotten nothing so far, try something that may be stupid.
     """
     async def enrich(self, result):
-        if result.has('content') or not self.soup:
+        if not self.soup:
+            return result
+
+        result.set('title', self.soup.title.string, 0, 'textlength')
+
+        if result.has('content'):
             return result
 
         parts = []

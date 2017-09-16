@@ -207,6 +207,10 @@ class SmartHTMLDocument:
     def body(self):
         return self.soup.html.body
 
+    @property
+    def title(self):
+        return self.soup.html.title
+
     def find_all_loose(self, *args, **kwargs):
         """
         Make all string kwarg values regexes.  This is useful in cases where
