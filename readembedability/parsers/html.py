@@ -1,5 +1,7 @@
 import re
 
+from readembedability.utils import URL
+
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString, Tag, Comment, ProcessingInstruction
 from bs4.element import Declaration, CData, Doctype
@@ -50,8 +52,9 @@ CLEAN_ELEMS = [
 CLEAN_ELEM_ATTRS = {
     'a': ['href'],
     'img': ['src'],
-    'iframe': ['*'],
-    'video': ['*']
+    'iframe': ['src'],
+    'source': ['src', 'type'],
+    'video': ['height', 'width']
 }
 
 
@@ -110,6 +113,8 @@ class SmartElem:
             result = self._is_virtuous_anchor()
         if self.elem.name == 'img':
             result = self._is_virtuous_image()
+        if self.elem.name == 'iframe':
+            result = self._is_virtuous_iframe()
 
         # the class attribute is a list
         cstring = " ".join(self.attrs.get('class', []))
@@ -117,6 +122,12 @@ class SmartElem:
         if any([(verb in cstring) for verb in verbotten]):
             result = False
         return result
+
+    def _is_virtuous_iframe(self):
+        src = self.attrs.get('src')
+        if not src:
+            return False
+        return URL(src).top_host in ['youtube.com']
 
     def _is_virtuous_image(self):
         """
