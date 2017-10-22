@@ -23,6 +23,7 @@ class ParseResult:
         self.set('keywords', [])
         self.set('canonical_url', None)
         self.set('success', False)
+        self.set('slug', None)
 
     def set_parser_name(self, name):
         self.current_parser = name

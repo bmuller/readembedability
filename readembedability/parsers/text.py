@@ -104,6 +104,17 @@ class Summarizer:
                     return results
         return results
 
+    def slug(self, length=5):
+        slug = []
+        tokenizer = WordPunctTokenizer()
+        for word in tokenizer.tokenize(self.title or ""):
+            word = word.lower()
+            if len(word) > 2 and word not in STOPWORDS:
+                slug.append(word)
+        # make sure we get at least 5 words
+        slug += self.keywords(length)
+        return "-".join(slug[:length]).lower()
+
     def summary(self, max_sentence_count=4, sufficient_word_count=70):
         """
         Stop adding sentences when either max_sentence_count is reached

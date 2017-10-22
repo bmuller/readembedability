@@ -3,6 +3,7 @@ from readability.readability import Document
 from readembedability.parsers.html import sanitize_html, SmartHTMLDocument
 from readembedability.parsers.base import BaseParser
 from readembedability.parsers.html import SmartElem
+from readembedability.parsers.text import Summarizer
 
 
 class LastDitchParser(BaseParser):
@@ -53,6 +54,13 @@ class FinalContentPass(BaseParser):
         self.cbs = SmartHTMLDocument(result.get('content'))
         result = self.remove_title(result)
         result = self.remove_social_links(result)
+        result = self.add_slug(result)
+        return result
+
+    # pylint: disable=no-self-use
+    def add_slug(self, result):
+        sumzer = Summarizer(result.get('_text'), result.get('title'))
+        result.set('slug', sumzer.slug(8), 3)
         return result
 
     # pylint: disable=no-self-use
