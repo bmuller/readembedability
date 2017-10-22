@@ -113,7 +113,7 @@ class Summarizer:
                 slug.append(word)
         # make sure we get at least 5 words
         slug += self.keywords(length)
-        return "-".join(slug[:length]).lower()
+        return ("-".join(slug[:length]).lower()).replace(' ', '-')
 
     def summary(self, max_sentence_count=4, sufficient_word_count=70):
         """
