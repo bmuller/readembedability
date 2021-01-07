@@ -13,7 +13,7 @@ setup(
     packages=find_packages(),
     package_data={'readembedability': ['data/*.*']},
     install_requires = [
-       'lxml==3.8.0',
+       'lxml==4.6.2',
        'cssselect==1.0.1',
        'readability-lxml==0.6.2',
        'robostrippy==1.3',
